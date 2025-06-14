@@ -22,7 +22,10 @@ router.get('/projects', function(req, res, next) {
 
 /* GET Contact page. */
 router.get('/contact', function(req, res, next) {
-  res.render('contact', { title: 'Contact' });
+  res.render('contact', { 
+    title: 'Contact',
+    isContactPage: true,
+  });
 });
 
 module.exports = router;
