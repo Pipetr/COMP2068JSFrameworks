@@ -171,6 +171,7 @@ main {
 .features {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
+    
 }
 
 .feature-item {
@@ -186,6 +187,7 @@ main {
     justify-content: center;
     border-radius: 10px;
     transition: all 0.5s ease-in;
+    height: 300px;
 }
 
 .feature-item img::before {
@@ -213,11 +215,18 @@ main {
     text-align: center;
     margin: 20px;
     padding: 0 20px;
+    
 }
 
 .product-item a {
     text-decoration: none;
     color: #333;
+}
+
+/* Add color to the view project link */
+.product-item > p > a:nth-child(2) {
+    color: #008efa;
+    text-decoration: underline;
 }
 
 .product-item:hover {
@@ -231,7 +240,7 @@ main {
 
 .product-item img {
     width: 100%;
-    height: auto;
+    height: 350px;
 }
 
 
@@ -435,6 +444,7 @@ footer form button:hover {
 .team-member img {
     width: 100%;
     border-radius: 50%;
+    height: 250px;
 }
 
 .team-member h3 {
@@ -518,22 +528,6 @@ footer form button:hover {
     color: #666;
 }
 
-.buy-now {
-    background-color: #ff5733;
-    color: #fff;
-    padding: 10px 20px;
-    text-decoration: none;
-    font-size: 1.2rem;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.6s ease;
-}
-
-.buy-now:hover {
-    background-color: #0e4270;
-    box-shadow: 0 0 10px #0e4270;
-}
 
 /* Contact Us Section */
 .contact-us {
