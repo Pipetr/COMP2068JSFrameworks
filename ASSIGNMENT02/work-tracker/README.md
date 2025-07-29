@@ -395,8 +395,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👨‍💻 Author
 
-**Fernando Alfonso**
-- Email: falfonso@student.georgiancollege.ca
+**Felipe Alfonso**
+- Email: falfonso@student.georgianc.onca
 - Program: Computer Programming - Georgian College
 - Course: COMP2068 - JavaScript Frameworks
 
