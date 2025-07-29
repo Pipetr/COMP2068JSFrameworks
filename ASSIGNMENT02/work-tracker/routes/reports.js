@@ -25,15 +25,15 @@ router.get('/', requireAuth, async (req, res) => {
     
     // Calculate summary statistics
     const totalHours = workEntries.reduce((sum, entry) => {
-      const workMinutes = entry.duration - (entry.breakTime || 0);
-      return sum + (workMinutes / 60);
+      return sum + (entry.totalHours || 0);
     }, 0);
     
     const totalEarnings = workEntries.reduce((sum, entry) => {
-      const workMinutes = entry.duration - (entry.breakTime || 0);
-      const hours = workMinutes / 60;
-      return sum + (hours * entry.hourlyRate);
+      return sum + (entry.totalEarnings || 0);
     }, 0);
+    
+    // Calculate average hourly rate
+    const avgHourlyRate = totalHours > 0 ? totalEarnings / totalHours : 0;
     
     // Group by project for chart data
     const projectStats = {};
@@ -47,10 +47,8 @@ router.get('/', requireAuth, async (req, res) => {
         };
       }
       
-      const workMinutes = entry.duration - (entry.breakTime || 0);
-      const hours = workMinutes / 60;
-      projectStats[projectName].hours += hours;
-      projectStats[projectName].earnings += hours * entry.hourlyRate;
+      projectStats[projectName].hours += entry.totalHours || 0;
+      projectStats[projectName].earnings += entry.totalEarnings || 0;
       projectStats[projectName].entries += 1;
     });
     
@@ -65,16 +63,15 @@ router.get('/', requireAuth, async (req, res) => {
         };
       }
       
-      const workMinutes = entry.duration - (entry.breakTime || 0);
-      const hours = workMinutes / 60;
-      dailyStats[dateKey].hours += hours;
-      dailyStats[dateKey].earnings += hours * entry.hourlyRate;
+      dailyStats[dateKey].hours += entry.totalHours || 0;
+      dailyStats[dateKey].earnings += entry.totalEarnings || 0;
     });
     
     res.render('reports/index', {
       title: 'Reports - Work Tracker',
       totalHours: totalHours.toFixed(2),
       totalEarnings: totalEarnings.toFixed(2),
+      avgHourly: avgHourlyRate.toFixed(2),
       projectStats: JSON.stringify(projectStats),
       dailyStats: JSON.stringify(dailyStats),
       projects,
@@ -130,10 +127,8 @@ router.get('/api/chart-data', requireAuth, async (req, res) => {
         };
       }
       
-      const workMinutes = entry.duration - (entry.breakTime || 0);
-      const hours = workMinutes / 60;
-      projectStats[projectName].hours += hours;
-      projectStats[projectName].earnings += hours * entry.hourlyRate;
+      projectStats[projectName].hours += entry.totalHours || 0;
+      projectStats[projectName].earnings += entry.totalEarnings || 0;
       projectStats[projectName].entries += 1;
     });
     
@@ -148,10 +143,8 @@ router.get('/api/chart-data', requireAuth, async (req, res) => {
         };
       }
       
-      const workMinutes = entry.duration - (entry.breakTime || 0);
-      const hours = workMinutes / 60;
-      dailyStats[dateKey].hours += hours;
-      dailyStats[dateKey].earnings += hours * entry.hourlyRate;
+      dailyStats[dateKey].hours += entry.totalHours || 0;
+      dailyStats[dateKey].earnings += entry.totalEarnings || 0;
     });
     
     res.json({
@@ -159,13 +152,10 @@ router.get('/api/chart-data', requireAuth, async (req, res) => {
       dailyStats,
       summary: {
         totalHours: workEntries.reduce((sum, entry) => {
-          const workMinutes = entry.duration - (entry.breakTime || 0);
-          return sum + (workMinutes / 60);
+          return sum + (entry.totalHours || 0);
         }, 0),
         totalEarnings: workEntries.reduce((sum, entry) => {
-          const workMinutes = entry.duration - (entry.breakTime || 0);
-          const hours = workMinutes / 60;
-          return sum + (hours * entry.hourlyRate);
+          return sum + (entry.totalEarnings || 0);
         }, 0),
         entriesCount: workEntries.length
       }
