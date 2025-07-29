@@ -1,0 +1,331 @@
+{{#section 'styles'}}
+<style>
+  .upload-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+  }
+  
+  .upload-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+  
+  .upload-section {
+    background: white;
+    border-radius: 10px;
+    padding: 2rem;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+  }
+  
+  .upload-zone {
+    border: 2px dashed #667eea;
+    border-radius: 10px;
+    padding: 3rem 2rem;
+    text-align: center;
+    background: #f8f9ff;
+    transition: all 0.3s ease;
+    margin-bottom: 1.5rem;
+  }
+  
+  .upload-zone:hover {
+    border-color: #764ba2;
+    background: #f0f2ff;
+  }
+  
+  .upload-zone.dragover {
+    border-color: #28a745;
+    background: #f0fff4;
+  }
+  
+  .upload-icon {
+    font-size: 3rem;
+    color: #667eea;
+    margin-bottom: 1rem;
+  }
+  
+  .file-input-wrapper {
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+  }
+  
+  .file-input-wrapper input[type=file] {
+    position: absolute;
+    left: -9999px;
+  }
+  
+  .file-input-label {
+    padding: 0.75rem 1.5rem;
+    background: #667eea;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .file-input-label:hover {
+    background: #764ba2;
+  }
+  
+  .selected-file {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #e8f5e8;
+    border-radius: 5px;
+    border-left: 4px solid #28a745;
+  }
+  
+  .instructions-section {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .project-card {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    padding: 1rem;
+    text-align: center;
+  }
+  
+  .error-list {
+    max-height: 300px;
+    overflow-y: auto;
+    background: #f8f9fa;
+    border-radius: 5px;
+    padding: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 5px;
+    font-weight: 500;
+  }
+</style>
+{{/section}}
+
+<div class="container-fluid">
+  <div class="upload-container">
+    <div class="upload-header">
+      <h1><i class="fas fa-upload me-2"></i>Upload Excel File</h1>
+      <p class="mb-0">Import work entries from a spreadsheet</p>
+    </div>
+
+    {{#if error}}
+      <div class="alert alert-danger" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>{{error}}
+      </div>
+    {{/if}}
+
+    {{#if success}}
+      <div class="alert alert-success" role="alert">
+        <i class="fas fa-check-circle me-2"></i>{{success}}
+        
+        {{#if uploadErrors}}
+          <hr>
+          <h6>Error Details:</h6>
+          <div class="error-list">
+            {{#each uploadErrors}}
+              <div class="small text-danger">• {{this}}</div>
+            {{/each}}
+          </div>
+        {{/if}}
+      </div>
+    {{/if}}
+
+    <!-- Instructions -->
+    <div class="instructions-section">
+      <h5><i class="fas fa-info-circle me-2"></i>Before You Start</h5>
+      <ul class="mb-3">
+        <li>Download the Excel template to ensure correct formatting</li>
+        <li>Project names must match exactly with your existing projects</li>
+        <li>Supported formats: .xlsx, .xls (Excel files only)</li>
+        <li>Maximum file size: 5MB</li>
+        <li>Hourly rates will be automatically assigned from your project settings</li>
+      </ul>
+      
+      <div class="mb-3">
+        <a href="/work/download-template" class="btn btn-outline-info">
+          <i class="fas fa-download me-2"></i>Download Excel Template
+        </a>
+      </div>
+
+      {{#if projects.length}}
+        <h6>Your Projects:</h6>
+        <div class="projects-grid">
+          {{#each projects}}
+            <div class="project-card">
+              <strong>{{this.name}}</strong><br>
+              <small class="text-muted">${{this.hourlyRate}}/hour</small>
+            </div>
+          {{/each}}
+        </div>
+      {{else}}
+        <div class="alert alert-warning">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          You need to <a href="/projects/add">create at least one project</a> before uploading work entries.
+        </div>
+      {{/if}}
+    </div>
+
+    <!-- Upload Form -->
+    {{#if projects.length}}
+      <div class="upload-section">
+        <h5><i class="fas fa-cloud-upload-alt me-2"></i>Upload Your File</h5>
+        
+        <form action="/work/upload" method="POST" enctype="multipart/form-data" id="uploadForm">
+          <div class="upload-zone" id="uploadZone">
+            <div class="upload-icon">
+              <i class="fas fa-file-excel"></i>
+            </div>
+            <h6>Drag & Drop Your Excel File Here</h6>
+            <p class="text-muted mb-3">or click to browse</p>
+            
+            <div class="file-input-wrapper">
+              <input type="file" name="excelFile" id="excelFile" accept=".xlsx,.xls" required>
+              <label for="excelFile" class="file-input-label">
+                <i class="fas fa-folder-open me-2"></i>Choose File
+              </label>
+            </div>
+            
+            <div id="selectedFile" class="selected-file" style="display: none;">
+              <i class="fas fa-file-excel text-success me-2"></i>
+              <span id="fileName"></span>
+              <button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="clearFile()">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+          
+          <div class="text-center">
+            <button type="submit" class="btn btn-success me-2" id="uploadBtn" disabled>
+              <i class="fas fa-upload me-2"></i>Upload & Process
+            </button>
+            <a href="/work/dashboard" class="btn btn-secondary">
+              <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+            </a>
+          </div>
+        </form>
+      </div>
+    {{/if}}
+
+    <!-- Sample Data Format -->
+    <div class="upload-section">
+      <h5><i class="fas fa-table me-2"></i>Expected Excel Format</h5>
+      <div class="table-responsive">
+        <table class="table table-bordered">
+          <thead class="table-dark">
+            <tr>
+              <th>Project Name</th>
+              <th>Description</th>
+              <th>Date</th>
+              <th>Start Time</th>
+              <th>End Time</th>
+              <th>Break Time (minutes)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{{#if projects.[0]}}{{projects.[0].name}}{{else}}Sample Project{{/if}}</td>
+              <td>Website development work</td>
+              <td>2025-01-15</td>
+              <td>09:00</td>
+              <td>17:00</td>
+              <td>60</td>
+            </tr>
+            <tr>
+              <td>{{#if projects.[1]}}{{projects.[1].name}}{{else}}Another Project{{/if}}</td>
+              <td>Bug fixes and testing</td>
+              <td>2025-01-16</td>
+              <td>10:00</td>
+              <td>18:00</td>
+              <td>30</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{#section 'scripts'}}
+<script>
+  const uploadZone = document.getElementById('uploadZone');
+  const fileInput = document.getElementById('excelFile');
+  const selectedFile = document.getElementById('selectedFile');
+  const fileName = document.getElementById('fileName');
+  const uploadBtn = document.getElementById('uploadBtn');
+  
+  // Drag and drop functionality
+  uploadZone.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    uploadZone.classList.add('dragover');
+  });
+  
+  uploadZone.addEventListener('dragleave', function(e) {
+    e.preventDefault();
+    uploadZone.classList.remove('dragover');
+  });
+  
+  uploadZone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    uploadZone.classList.remove('dragover');
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      const file = files[0];
+      if (file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || 
+          file.type === 'application/vnd.ms-excel') {
+        fileInput.files = files;
+        showSelectedFile(file);
+      } else {
+        alert('Please select an Excel file (.xlsx or .xls)');
+      }
+    }
+  });
+  
+  // File input change
+  fileInput.addEventListener('change', function(e) {
+    if (e.target.files.length > 0) {
+      showSelectedFile(e.target.files[0]);
+    }
+  });
+  
+  // Show selected file
+  function showSelectedFile(file) {
+    fileName.textContent = file.name;
+    selectedFile.style.display = 'block';
+    uploadBtn.disabled = false;
+  }
+  
+  // Clear file selection
+  function clearFile() {
+    fileInput.value = '';
+    selectedFile.style.display = 'none';
+    uploadBtn.disabled = true;
+  }
+  
+  // Form submission
+  document.getElementById('uploadForm').addEventListener('submit', function(e) {
+    uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+    uploadBtn.disabled = true;
+  });
+</script>
+{{/section}}
