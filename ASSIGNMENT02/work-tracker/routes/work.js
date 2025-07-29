@@ -11,13 +11,19 @@ router.get('/dashboard', requireAuth, async (req, res) => {
 
     // Calculate totals
     const totalHours = workEntries.reduce((sum, entry) => sum + entry.totalHours, 0);
-    const totalEarnings = workEntries.reduce((sum, entry) => sum + entry.totalEarnings, 0);
+    const totalGrossEarnings = workEntries.reduce((sum, entry) => sum + entry.grossEarnings, 0);
+    const totalNetEarnings = workEntries.reduce((sum, entry) => sum + entry.netEarnings, 0);
+    const totalDeductions = workEntries.reduce((sum, entry) => sum + entry.totalDeductions, 0);
+    const totalEarnings = totalGrossEarnings; // For backward compatibility
 
     res.render('work/dashboard', {
       title: 'Dashboard - Work Tracker',
       workEntries,
       totalHours: totalHours.toFixed(2),
       totalEarnings: totalEarnings.toFixed(2),
+      totalGrossEarnings: totalGrossEarnings.toFixed(2),
+      totalNetEarnings: totalNetEarnings.toFixed(2),
+      totalDeductions: totalDeductions.toFixed(2),
       success: req.session.success,
       error: req.session.error
     });
@@ -42,7 +48,7 @@ router.get('/add', requireAuth, (req, res) => {
 // Create new work entry
 router.post('/add', requireAuth, async (req, res) => {
   try {
-    const { project, description, date, startTime, endTime, hourlyRate } = req.body;
+    const { project, description, date, startTime, endTime, breakTime, hourlyRate } = req.body;
 
     // Validation
     if (!project || !description || !date || !startTime || !endTime || !hourlyRate) {
@@ -55,14 +61,21 @@ router.post('/add', requireAuth, async (req, res) => {
       return res.redirect('/work/add');
     }
 
+    const breakTimeMinutes = parseInt(breakTime) || 0;
+    if (breakTimeMinutes < 0 || breakTimeMinutes > 480) {
+      req.session.error = 'Break time must be between 0 and 480 minutes';
+      return res.redirect('/work/add');
+    }
+
     // Create new work entry
     const workEntry = new WorkEntry({
       userId: req.user._id,
       project,
       description,
-      date: new Date(date),
+      date: new Date(date + 'T12:00:00.000Z'), // Set to noon UTC to avoid timezone issues
       startTime,
       endTime,
+      breakTime: breakTimeMinutes,
       hourlyRate: parseFloat(hourlyRate)
     });
 
@@ -72,7 +85,7 @@ router.post('/add', requireAuth, async (req, res) => {
     res.redirect('/work/dashboard');
   } catch (error) {
     console.error('Add work entry error:', error);
-    req.session.error = 'Error adding work entry. Please check your input.';
+    req.session.error = 'Error adding work entry';
     res.redirect('/work/add');
   }
 });
@@ -112,7 +125,7 @@ router.get('/edit/:id', requireAuth, async (req, res) => {
 // Update work entry
 router.post('/edit/:id', requireAuth, async (req, res) => {
   try {
-    const { project, description, date, startTime, endTime, hourlyRate } = req.body;
+    const { project, description, date, startTime, endTime, breakTime, hourlyRate } = req.body;
 
     // Validation
     if (!project || !description || !date || !startTime || !endTime || !hourlyRate) {
@@ -125,15 +138,22 @@ router.post('/edit/:id', requireAuth, async (req, res) => {
       return res.redirect(`/work/edit/${req.params.id}`);
     }
 
+    const breakTimeMinutes = parseInt(breakTime) || 0;
+    if (breakTimeMinutes < 0 || breakTimeMinutes > 480) {
+      req.session.error = 'Break time must be between 0 and 480 minutes';
+      return res.redirect(`/work/edit/${req.params.id}`);
+    }
+
     // Update work entry
     const workEntry = await WorkEntry.findOneAndUpdate(
       { _id: req.params.id, userId: req.user._id },
       {
         project,
         description,
-        date: new Date(date),
+        date: new Date(date + 'T12:00:00.000Z'), // Set to noon UTC to avoid timezone issues
         startTime,
         endTime,
+        breakTime: breakTimeMinutes,
         hourlyRate: parseFloat(hourlyRate)
       },
       { new: true }
@@ -148,12 +168,12 @@ router.post('/edit/:id', requireAuth, async (req, res) => {
     res.redirect('/work/dashboard');
   } catch (error) {
     console.error('Update work entry error:', error);
-    req.session.error = 'Error updating work entry. Please check your input.';
+    req.session.error = 'Error updating work entry';
     res.redirect(`/work/edit/${req.params.id}`);
   }
 });
 
-// Delete work entry (with confirmation)
+// Delete work entry
 router.post('/delete/:id', requireAuth, async (req, res) => {
   try {
     const workEntry = await WorkEntry.findOneAndDelete({
@@ -163,10 +183,10 @@ router.post('/delete/:id', requireAuth, async (req, res) => {
 
     if (!workEntry) {
       req.session.error = 'Work entry not found';
-    } else {
-      req.session.success = 'Work entry deleted successfully!';
+      return res.redirect('/work/dashboard');
     }
 
+    req.session.success = 'Work entry deleted successfully!';
     res.redirect('/work/dashboard');
   } catch (error) {
     console.error('Delete work entry error:', error);
@@ -175,24 +195,22 @@ router.post('/delete/:id', requireAuth, async (req, res) => {
   }
 });
 
-// Public entries page (read-only)
+// Public view - Show all work entries (read-only)
 router.get('/public', async (req, res) => {
   try {
     const workEntries = await WorkEntry.find()
       .populate('userId', 'firstName lastName')
-      .sort({ date: -1 })
-      .limit(20); // Limit to recent 20 entries
+      .sort({ date: -1 });
 
     res.render('work/public', {
-      title: 'Recent Work Entries - Work Tracker',
+      title: 'Public Work Entries - Work Tracker',
       workEntries
     });
   } catch (error) {
-    console.error('Public entries error:', error);
-    res.render('work/public', {
-      title: 'Recent Work Entries - Work Tracker',
-      workEntries: [],
-      error: 'Error loading work entries'
+    console.error('Public view error:', error);
+    res.render('error', { 
+      message: 'Error loading public work entries',
+      error: {}
     });
   }
 });

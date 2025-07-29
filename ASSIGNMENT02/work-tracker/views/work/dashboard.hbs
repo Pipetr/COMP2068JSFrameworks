@@ -145,22 +145,29 @@
 
   <!-- Statistics -->
   <div class="row mb-4">
-    <div class="col-md-4">
+    <div class="col-md-3">
       <div class="stats-card">
         <div class="stats-number">{{workEntries.length}}</div>
         <div class="stats-label">Total Entries</div>
       </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
       <div class="stats-card">
         <div class="stats-number">{{totalHours}}</div>
         <div class="stats-label">Hours Worked</div>
       </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
       <div class="stats-card">
-        <div class="stats-number">${{totalEarnings}}</div>
-        <div class="stats-label">Total Earnings</div>
+        <div class="stats-number">${{totalGrossEarnings}}</div>
+        <div class="stats-label">Gross Earnings</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stats-card">
+        <div class="stats-number text-success">${{totalNetEarnings}}</div>
+        <div class="stats-label">Net Earnings</div>
+        <small class="text-muted">After deductions: ${{totalDeductions}}</small>
       </div>
     </div>
   </div>
@@ -190,11 +197,18 @@
                 <div class="entry-time">
                   <span><strong>Start:</strong> {{this.startTime}}</span>
                   <span><strong>End:</strong> {{this.endTime}}</span>
+                  {{#if this.breakTime}}
+                  <span><strong>Break:</strong> {{this.formattedBreakTime}}</span>
+                  {{/if}}
                   <span><strong>Hours:</strong> {{this.totalHours}}</span>
                   <span><strong>Rate:</strong> ${{this.hourlyRate}}/hr</span>
                 </div>
                 <div class="d-flex align-items-center gap-3">
-                  <div class="entry-earnings">{{formatCurrency this.totalEarnings}}</div>
+                  <div class="entry-earnings">
+                    <div class="fw-bold text-success">Net: {{formatCurrency this.netEarnings}}</div>
+                    <small class="text-muted">Gross: {{formatCurrency this.grossEarnings}}</small>
+                    <small class="text-muted d-block">Deductions: {{formatCurrency this.totalDeductions}}</small>
+                  </div>
                   <div class="entry-actions">
                     <a href="/work/edit/{{this._id}}" class="btn btn-outline-primary btn-sm">
                       <i class="fas fa-edit me-1"></i>Edit

@@ -22,6 +22,7 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var authRouter = require('./routes/auth');
 var workRouter = require('./routes/work');
+var projectsRouter = require('./routes/projects');
 
 var app = express();
 
@@ -48,7 +49,15 @@ hbs.registerHelper('formatCurrency', function(amount) {
 });
 
 hbs.registerHelper('formatDate', function(date) {
-  return new Date(date).toLocaleDateString();
+  // Create date and format it to avoid timezone issues
+  const d = new Date(date);
+  // Use toISOString and split to get just the date part, then reformat
+  return d.toLocaleDateString('en-US', {
+    timeZone: 'UTC',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
 });
 
 hbs.registerHelper('currentYear', function() {
@@ -103,6 +112,7 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/auth', authRouter);
 app.use('/work', workRouter);
+app.use('/projects', projectsRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
