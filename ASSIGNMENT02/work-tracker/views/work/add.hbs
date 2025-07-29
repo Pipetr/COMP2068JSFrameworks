@@ -88,9 +88,20 @@
 
       <form action="/work/add" method="POST">
         <div class="form-group">
-          <label for="project" class="form-label">Project Name</label>
-          <input type="text" class="form-control" id="project" name="project" 
-                 placeholder="Enter project name" required>
+          <label for="projectId" class="form-label">Project</label>
+          <select class="form-control" id="projectId" name="projectId" required>
+            <option value="">Select a project...</option>
+            {{#each projects}}
+              <option value="{{this._id}}" data-rate="{{this.hourlyRate}}">
+                {{this.name}} (${{this.hourlyRate}}/hr)
+              </option>
+            {{/each}}
+          </select>
+          {{#unless projects.length}}
+            <small class="form-text text-muted">
+              <a href="/projects/add">Create a project first</a> to track work entries.
+            </small>
+          {{/unless}}
         </div>
 
         <div class="form-group">
@@ -125,12 +136,6 @@
           <small class="form-text text-muted">Enter break time in minutes (e.g., 30 for 30 minutes, 60 for 1 hour)</small>
         </div>
 
-        <div class="form-group">
-          <label for="hourlyRate" class="form-label">Hourly Rate ($)</label>
-          <input type="number" step="0.01" min="0.01" class="form-control" 
-                 id="hourlyRate" name="hourlyRate" placeholder="25.00" required>
-        </div>
-
         <div class="btn-container">
           <a href="/work/dashboard" class="btn btn-secondary">
             <i class="fas fa-arrow-left me-2"></i>Cancel
@@ -153,7 +158,7 @@
   const startTime = document.getElementById('startTime');
   const endTime = document.getElementById('endTime');
   const breakTime = document.getElementById('breakTime');
-  const hourlyRate = document.getElementById('hourlyRate');
+  const projectSelect = document.getElementById('projectId');
   
   // Create earnings preview container
   const earningsPreview = document.createElement('div');
@@ -162,8 +167,15 @@
   earningsPreview.style.display = 'none';
   document.querySelector('.form-body form').appendChild(earningsPreview);
   
+  function getSelectedHourlyRate() {
+    const selectedOption = projectSelect.options[projectSelect.selectedIndex];
+    return selectedOption && selectedOption.dataset.rate ? parseFloat(selectedOption.dataset.rate) : 0;
+  }
+  
   function updateCalculation() {
-    if (startTime.value && endTime.value && hourlyRate.value) {
+    const hourlyRate = getSelectedHourlyRate();
+    
+    if (startTime.value && endTime.value && hourlyRate > 0) {
       const start = new Date('2000-01-01 ' + startTime.value);
       const end = new Date('2000-01-01 ' + endTime.value);
       const breakMinutes = parseInt(breakTime.value) || 0;
@@ -172,10 +184,10 @@
         let totalMinutes = (end - start) / (1000 * 60);
         totalMinutes -= breakMinutes;
         const hours = Math.max(0, totalMinutes / 60);
-        const grossEarnings = hours * parseFloat(hourlyRate.value);
+        const grossEarnings = hours * hourlyRate;
         
         // Simplified tax calculation for preview
-        const estimatedAnnualIncome = parseFloat(hourlyRate.value) * 40 * 52;
+        const estimatedAnnualIncome = hourlyRate * 40 * 52;
         const federalTaxRate = estimatedAnnualIncome <= 53359 ? 0.15 : 0.205;
         const provincialTaxRate = 0.0505; // Ontario base rate
         const cppRate = 0.0595;
@@ -208,6 +220,6 @@
   startTime.addEventListener('change', updateCalculation);
   endTime.addEventListener('change', updateCalculation);
   breakTime.addEventListener('input', updateCalculation);
-  hourlyRate.addEventListener('input', updateCalculation);
+  projectSelect.addEventListener('change', updateCalculation);
 </script>
 {{/section}}

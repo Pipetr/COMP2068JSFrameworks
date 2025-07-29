@@ -37,27 +37,35 @@ router.get('/dashboard', requireAuth, async (req, res) => {
 });
 
 // Add work entry form
-router.get('/add', requireAuth, (req, res) => {
-  res.render('work/add', {
-    title: 'Add Work Entry - Work Tracker',
-    error: req.session.error
-  });
-  delete req.session.error;
+router.get('/add', requireAuth, async (req, res) => {
+  try {
+    const Project = require('../models/Project');
+    const projects = await Project.find({ 
+      userId: req.user._id, 
+      status: 'active' 
+    }).sort({ name: 1 });
+
+    res.render('work/add', {
+      title: 'Add Work Entry - Work Tracker',
+      projects,
+      error: req.session.error
+    });
+    delete req.session.error;
+  } catch (error) {
+    console.error('Add work entry form error:', error);
+    req.session.error = 'Error loading projects';
+    res.redirect('/work/dashboard');
+  }
 });
 
 // Create new work entry
 router.post('/add', requireAuth, async (req, res) => {
   try {
-    const { project, description, date, startTime, endTime, breakTime, hourlyRate } = req.body;
+    const { projectId, description, date, startTime, endTime, breakTime } = req.body;
 
     // Validation
-    if (!project || !description || !date || !startTime || !endTime || !hourlyRate) {
+    if (!projectId || !description || !date || !startTime || !endTime) {
       req.session.error = 'All fields are required';
-      return res.redirect('/work/add');
-    }
-
-    if (parseFloat(hourlyRate) <= 0) {
-      req.session.error = 'Hourly rate must be greater than 0';
       return res.redirect('/work/add');
     }
 
@@ -67,16 +75,29 @@ router.post('/add', requireAuth, async (req, res) => {
       return res.redirect('/work/add');
     }
 
+    // Get project details to get hourly rate and name
+    const Project = require('../models/Project');
+    const project = await Project.findOne({ 
+      _id: projectId, 
+      userId: req.user._id 
+    });
+
+    if (!project) {
+      req.session.error = 'Selected project not found';
+      return res.redirect('/work/add');
+    }
+
     // Create new work entry
     const workEntry = new WorkEntry({
       userId: req.user._id,
-      project,
+      projectId: project._id,
+      project: project.name,
       description,
       date: new Date(date + 'T12:00:00.000Z'), // Set to noon UTC to avoid timezone issues
       startTime,
       endTime,
       breakTime: breakTimeMinutes,
-      hourlyRate: parseFloat(hourlyRate)
+      hourlyRate: project.hourlyRate
     });
 
     await workEntry.save();
@@ -103,6 +124,10 @@ router.get('/edit/:id', requireAuth, async (req, res) => {
       return res.redirect('/work/dashboard');
     }
 
+    // Get all projects for the dropdown
+    const Project = require('../models/Project');
+    const projects = await Project.find({ userId: req.user._id }).sort({ name: 1 });
+
     // Format date for HTML date input
     const formattedDate = workEntry.date.toISOString().split('T')[0];
 
@@ -112,6 +137,7 @@ router.get('/edit/:id', requireAuth, async (req, res) => {
         ...workEntry.toObject(),
         date: formattedDate
       },
+      projects,
       error: req.session.error
     });
     delete req.session.error;
@@ -125,16 +151,11 @@ router.get('/edit/:id', requireAuth, async (req, res) => {
 // Update work entry
 router.post('/edit/:id', requireAuth, async (req, res) => {
   try {
-    const { project, description, date, startTime, endTime, breakTime, hourlyRate } = req.body;
+    const { projectId, description, date, startTime, endTime, breakTime } = req.body;
 
     // Validation
-    if (!project || !description || !date || !startTime || !endTime || !hourlyRate) {
+    if (!projectId || !description || !date || !startTime || !endTime) {
       req.session.error = 'All fields are required';
-      return res.redirect(`/work/edit/${req.params.id}`);
-    }
-
-    if (parseFloat(hourlyRate) <= 0) {
-      req.session.error = 'Hourly rate must be greater than 0';
       return res.redirect(`/work/edit/${req.params.id}`);
     }
 
@@ -144,17 +165,30 @@ router.post('/edit/:id', requireAuth, async (req, res) => {
       return res.redirect(`/work/edit/${req.params.id}`);
     }
 
+    // Get project details to get hourly rate and name
+    const Project = require('../models/Project');
+    const project = await Project.findOne({ 
+      _id: projectId, 
+      userId: req.user._id 
+    });
+
+    if (!project) {
+      req.session.error = 'Selected project not found';
+      return res.redirect(`/work/edit/${req.params.id}`);
+    }
+
     // Update work entry
     const workEntry = await WorkEntry.findOneAndUpdate(
       { _id: req.params.id, userId: req.user._id },
       {
-        project,
+        projectId: project._id,
+        project: project.name,
         description,
         date: new Date(date + 'T12:00:00.000Z'), // Set to noon UTC to avoid timezone issues
         startTime,
         endTime,
         breakTime: breakTimeMinutes,
-        hourlyRate: parseFloat(hourlyRate)
+        hourlyRate: project.hourlyRate
       },
       { new: true }
     );
