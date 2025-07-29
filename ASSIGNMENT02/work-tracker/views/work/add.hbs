@@ -1,0 +1,169 @@
+{{#section 'styles'}}
+<style>
+  .form-container {
+    max-width: 600px;
+    margin: 2rem auto;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    overflow: hidden;
+  }
+  
+  .form-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+  }
+  
+  .form-body {
+    padding: 2rem;
+  }
+  
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+  
+  .form-label {
+    font-weight: 500;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+  }
+  
+  .form-control {
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    padding: 0.75rem;
+  }
+  
+  .form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+  }
+  
+  .btn-container {
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    margin-top: 2rem;
+  }
+  
+  .btn {
+    padding: 0.75rem 2rem;
+    border-radius: 5px;
+    font-weight: 500;
+  }
+  
+  .time-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  
+  @media (max-width: 576px) {
+    .time-inputs {
+      grid-template-columns: 1fr;
+    }
+    
+    .btn-container {
+      flex-direction: column;
+    }
+  }
+</style>
+{{/section}}
+
+<div class="container">
+  <div class="form-container">
+    <div class="form-header">
+      <h2><i class="fas fa-plus-circle me-2"></i>Add Work Entry</h2>
+      <p class="mb-0">Track your work hours and calculate earnings</p>
+    </div>
+    
+    <div class="form-body">
+      {{#if error}}
+        <div class="alert alert-danger" role="alert">
+          {{error}}
+        </div>
+      {{/if}}
+
+      <form action="/work/add" method="POST">
+        <div class="form-group">
+          <label for="project" class="form-label">Project Name</label>
+          <input type="text" class="form-control" id="project" name="project" 
+                 placeholder="Enter project name" required>
+        </div>
+
+        <div class="form-group">
+          <label for="description" class="form-label">Description</label>
+          <textarea class="form-control" id="description" name="description" rows="3"
+                    placeholder="Describe the work performed" required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="date" class="form-label">Date</label>
+          <input type="date" class="form-control" id="date" name="date" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Work Hours</label>
+          <div class="time-inputs">
+            <div>
+              <label for="startTime" class="form-label">Start Time</label>
+              <input type="time" class="form-control" id="startTime" name="startTime" required>
+            </div>
+            <div>
+              <label for="endTime" class="form-label">End Time</label>
+              <input type="time" class="form-control" id="endTime" name="endTime" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="hourlyRate" class="form-label">Hourly Rate ($)</label>
+          <input type="number" step="0.01" min="0.01" class="form-control" 
+                 id="hourlyRate" name="hourlyRate" placeholder="25.00" required>
+        </div>
+
+        <div class="btn-container">
+          <a href="/work/dashboard" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Cancel
+          </a>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save me-2"></i>Save Entry
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{{#section 'scripts'}}
+<script>
+  // Set today's date as default
+  document.getElementById('date').valueAsDate = new Date();
+  
+  // Auto-calculate hours (optional visual feedback)
+  const startTime = document.getElementById('startTime');
+  const endTime = document.getElementById('endTime');
+  const hourlyRate = document.getElementById('hourlyRate');
+  
+  function updateCalculation() {
+    if (startTime.value && endTime.value && hourlyRate.value) {
+      const start = new Date('2000-01-01 ' + startTime.value);
+      const end = new Date('2000-01-01 ' + endTime.value);
+      
+      if (end > start) {
+        const hours = (end - start) / (1000 * 60 * 60);
+        const earnings = hours * parseFloat(hourlyRate.value);
+        
+        // You could display this calculation to the user if desired
+        console.log(`Hours: ${hours.toFixed(2)}, Earnings: $${earnings.toFixed(2)}`);
+      }
+    }
+  }
+  
+  startTime.addEventListener('change', updateCalculation);
+  endTime.addEventListener('change', updateCalculation);
+  hourlyRate.addEventListener('input', updateCalculation);
+</script>
+{{/section}}
