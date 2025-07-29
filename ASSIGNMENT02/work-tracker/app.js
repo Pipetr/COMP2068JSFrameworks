@@ -64,6 +64,11 @@ hbs.registerHelper('currentYear', function() {
   return new Date().getFullYear();
 });
 
+// Equality helper for handlebars conditionals
+hbs.registerHelper('eq', function(a, b) {
+  return a === b;
+});
+
 // Sections helper for page-specific CSS and JS
 hbs.registerHelper('section', function(name, options) {
   if (!this._sections) this._sections = {};
