@@ -45,15 +45,20 @@ if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
           return done(null, user);
         }
         
-        // Check if user exists with same email
-        user = await User.findOne({ email: profile.emails[0].value });
+        // Safely get email from profile
+        const email = profile.emails && profile.emails[0] ? profile.emails[0].value : null;
         
-        if (user) {
-          // Link GitHub account to existing user
-          user.githubId = profile.id;
-          user.githubUsername = profile.username;
-          await user.save();
-          return done(null, user);
+        // Check if user exists with same email (only if email is available)
+        if (email) {
+          user = await User.findOne({ email: email.toLowerCase() });
+          
+          if (user) {
+            // Link GitHub account to existing user
+            user.githubId = profile.id;
+            user.githubUsername = profile.username;
+            await user.save();
+            return done(null, user);
+          }
         }
         
         // Create new user
@@ -61,9 +66,9 @@ if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
           githubId: profile.id,
           githubUsername: profile.username,
           username: profile.username,
-          email: profile.emails[0].value,
-          firstName: profile.displayName.split(' ')[0] || profile.username,
-          lastName: profile.displayName.split(' ').slice(1).join(' ') || ''
+          email: email ? email.toLowerCase() : `${profile.username}@github.local`,
+          firstName: profile.displayName ? profile.displayName.split(' ')[0] : profile.username,
+          lastName: profile.displayName ? profile.displayName.split(' ').slice(1).join(' ') : ''
         });
         
         await user.save();
