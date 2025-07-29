@@ -1,2 +1,294 @@
-<h1>{{title}}</h1>
-<p>Welcome to {{title}}</p>
+{{#section 'styles'}}
+<style>
+  .hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 4rem 0;
+    text-align: center;
+  }
+  
+  .hero-title {
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+  }
+  
+  .hero-subtitle {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+  }
+  
+  .hero-buttons {
+    margin-top: 2rem;
+  }
+  
+  .hero-buttons .btn {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    margin: 0 0.5rem;
+    border-radius: 50px;
+  }
+  
+  .features-section {
+    padding: 4rem 0;
+    background: #f8f9fa;
+  }
+  
+  .feature-card {
+    background: white;
+    border-radius: 10px;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+    height: 100%;
+  }
+  
+  .feature-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .feature-icon {
+    font-size: 3rem;
+    color: #667eea;
+    margin-bottom: 1rem;
+  }
+  
+  .feature-title {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+  }
+  
+  .feature-description {
+    color: #7f8c8d;
+    line-height: 1.6;
+  }
+  
+  .cta-section {
+    background: #2c3e50;
+    color: white;
+    padding: 3rem 0;
+    text-align: center;
+  }
+  
+  .cta-title {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+  
+  .cta-subtitle {
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+  }
+  
+  .stats-section {
+    padding: 3rem 0;
+    background: white;
+  }
+  
+  .stat-item {
+    text-align: center;
+    padding: 1rem;
+  }
+  
+  .stat-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #667eea;
+    display: block;
+  }
+  
+  .stat-label {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  
+  @media (max-width: 768px) {
+    .hero-title {
+      font-size: 2rem;
+    }
+    
+    .hero-subtitle {
+      font-size: 1rem;
+    }
+    
+    .hero-buttons .btn {
+      display: block;
+      margin: 0.5rem auto;
+      max-width: 200px;
+    }
+  }
+</style>
+{{/section}}
+
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 mx-auto">
+        <h1 class="hero-title">{{title}}</h1>
+        <p class="hero-subtitle">{{subtitle}}</p>
+        <div class="hero-buttons">
+          <a href="/auth/register" class="btn btn-light btn-lg">
+            <i class="fas fa-user-plus me-2"></i>Get Started Free
+          </a>
+          <a href="/work/public" class="btn btn-outline-light btn-lg">
+            <i class="fas fa-eye me-2"></i>View Public Entries
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 mx-auto text-center mb-5">
+        <h2>Why Choose Work Tracker?</h2>
+        <p class="lead">Everything you need to manage your time and projects professionally</p>
+      </div>
+    </div>
+    
+    <div class="row">
+      <div class="col-md-4 mb-4">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-clock"></i>
+          </div>
+          <h3 class="feature-title">Time Tracking</h3>
+          <p class="feature-description">
+            Easily track your work hours with precise start and end times. 
+            Automatic calculations ensure accurate time recording.
+          </p>
+        </div>
+      </div>
+      
+      <div class="col-md-4 mb-4">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-dollar-sign"></i>
+          </div>
+          <h3 class="feature-title">Earnings Calculator</h3>
+          <p class="feature-description">
+            Set hourly rates and automatically calculate earnings. 
+            Get real-time insights into your project profitability.
+          </p>
+        </div>
+      </div>
+      
+      <div class="col-md-4 mb-4">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-project-diagram"></i>
+          </div>
+          <h3 class="feature-title">Project Management</h3>
+          <p class="feature-description">
+            Organize work by projects with detailed descriptions. 
+            Keep track of multiple clients and tasks effortlessly.
+          </p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="row">
+      <div class="col-md-4 mb-4">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          <h3 class="feature-title">Secure Authentication</h3>
+          <p class="feature-description">
+            Your data is protected with secure authentication. 
+            Sign in with GitHub or create a secure account.
+          </p>
+        </div>
+      </div>
+      
+      <div class="col-md-4 mb-4">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-chart-bar"></i>
+          </div>
+          <h3 class="feature-title">Dashboard Analytics</h3>
+          <p class="feature-description">
+            Get insights with comprehensive dashboard views. 
+            Track total hours, earnings, and project progress.
+          </p>
+        </div>
+      </div>
+      
+      <div class="col-md-4 mb-4">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-mobile-alt"></i>
+          </div>
+          <h3 class="feature-title">Mobile Responsive</h3>
+          <p class="feature-description">
+            Access your work tracker from any device. 
+            Responsive design ensures great experience everywhere.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Stats Section -->
+<section class="stats-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-3">
+        <div class="stat-item">
+          <span class="stat-number">∞</span>
+          <span class="stat-label">Projects</span>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-item">
+          <span class="stat-number">24/7</span>
+          <span class="stat-label">Availability</span>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-item">
+          <span class="stat-number">100%</span>
+          <span class="stat-label">Free</span>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-item">
+          <span class="stat-number">0</span>
+          <span class="stat-label">Setup Time</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Call to Action Section -->
+<section class="cta-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 mx-auto">
+        <h2 class="cta-title">Ready to Start Tracking?</h2>
+        <p class="cta-subtitle">
+          Join thousands of professionals who trust Work Tracker to manage their time and projects
+        </p>
+        <a href="/auth/register" class="btn btn-primary btn-lg me-3">
+          <i class="fas fa-rocket me-2"></i>Start Free Today
+        </a>
+        <a href="/auth/login" class="btn btn-outline-light btn-lg">
+          <i class="fas fa-sign-in-alt me-2"></i>Sign In
+        </a>
+      </div>
+    </div>
+  </div>
+</section>

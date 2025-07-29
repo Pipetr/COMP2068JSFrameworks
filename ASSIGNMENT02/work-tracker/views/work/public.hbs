@@ -1,0 +1,198 @@
+{{#section 'styles'}}
+<style>
+  .public-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+    border-radius: 10px;
+    text-align: center;
+  }
+  
+  .entry-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 1rem;
+    overflow: hidden;
+  }
+  
+  .entry-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f8f9fa;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .entry-project {
+    font-weight: bold;
+    color: #2c3e50;
+    font-size: 1.1rem;
+  }
+  
+  .entry-date {
+    color: #7f8c8d;
+    font-size: 0.875rem;
+  }
+  
+  .entry-body {
+    padding: 1rem 1.5rem;
+  }
+  
+  .entry-description {
+    color: #555;
+    margin-bottom: 1rem;
+  }
+  
+  .entry-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  
+  .entry-time {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.875rem;
+    color: #6c757d;
+  }
+  
+  .entry-earnings {
+    font-weight: bold;
+    color: #27ae60;
+    font-size: 1.1rem;
+  }
+  
+  .entry-author {
+    color: #7f8c8d;
+    font-size: 0.875rem;
+    font-style: italic;
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #7f8c8d;
+  }
+  
+  .empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: #bdc3c7;
+  }
+  
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    color: #3498db;
+    text-decoration: none;
+    margin-bottom: 2rem;
+  }
+  
+  .back-link:hover {
+    text-decoration: underline;
+  }
+  
+  @media (max-width: 768px) {
+    .entry-details {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .entry-time {
+      flex-wrap: wrap;
+    }
+  }
+</style>
+{{/section}}
+
+<div class="container">
+  {{#if isAuthenticated}}
+    <a href="/work/dashboard" class="back-link">
+      <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+    </a>
+  {{else}}
+    <a href="/" class="back-link">
+      <i class="fas fa-arrow-left me-2"></i>Back to Home
+    </a>
+  {{/if}}
+
+  <div class="public-header">
+    <div class="container">
+      <h1><i class="fas fa-eye me-2"></i>Recent Work Entries</h1>
+      <p class="mb-0">Public showcase of tracked work and projects</p>
+    </div>
+  </div>
+
+  {{#if error}}
+    <div class="alert alert-danger" role="alert">
+      {{error}}
+    </div>
+  {{/if}}
+
+  <div class="row">
+    <div class="col-12">
+      {{#if workEntries.length}}
+        {{#each workEntries}}
+          <div class="entry-card">
+            <div class="entry-header">
+              <div>
+                <div class="entry-project">{{this.project}}</div>
+                <div class="entry-date">{{formatDate this.date}}</div>
+              </div>
+              <div class="entry-author">
+                by {{this.userId.firstName}} {{this.userId.lastName}}
+              </div>
+            </div>
+            <div class="entry-body">
+              <div class="entry-description">{{this.description}}</div>
+              <div class="entry-details">
+                <div class="entry-time">
+                  <span><strong>Start:</strong> {{this.startTime}}</span>
+                  <span><strong>End:</strong> {{this.endTime}}</span>
+                  <span><strong>Hours:</strong> {{this.totalHours}}</span>
+                  <span><strong>Rate:</strong> ${{this.hourlyRate}}/hr</span>
+                </div>
+                <div class="entry-earnings">{{formatCurrency this.totalEarnings}}</div>
+              </div>
+            </div>
+          </div>
+        {{/each}}
+      {{else}}
+        <div class="empty-state">
+          <i class="fas fa-clock"></i>
+          <h4>No work entries yet</h4>
+          <p>Be the first to share your work tracking!</p>
+          {{#unless isAuthenticated}}
+            <a href="/auth/register" class="btn btn-primary me-2">
+              <i class="fas fa-user-plus me-2"></i>Join Work Tracker
+            </a>
+            <a href="/auth/login" class="btn btn-outline-primary">
+              <i class="fas fa-sign-in-alt me-2"></i>Sign In
+            </a>
+          {{/unless}}
+        </div>
+      {{/if}}
+    </div>
+  </div>
+
+  {{#unless isAuthenticated}}
+    <div class="text-center mt-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Start Tracking Your Work</h5>
+          <p class="card-text">Join Work Tracker to manage your projects, track hours, and calculate earnings.</p>
+          <a href="/auth/register" class="btn btn-primary me-2">
+            <i class="fas fa-user-plus me-2"></i>Get Started
+          </a>
+          <a href="/auth/login" class="btn btn-outline-primary">
+            <i class="fas fa-sign-in-alt me-2"></i>Sign In
+          </a>
+        </div>
+      </div>
+    </div>
+  {{/unless}}
+</div>

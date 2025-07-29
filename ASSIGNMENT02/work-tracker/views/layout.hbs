@@ -2,9 +2,106 @@
 <html>
   <head>
     <title>{{title}}</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <!-- Bootstrap CSS -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Custom CSS -->
     <link rel='stylesheet' href='/stylesheets/style.css' />
+    
+    <!-- Page specific styles -->
+    {{{_sections.styles}}}
   </head>
   <body>
-    {{{body}}}
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+      <div class="container">
+        <a class="navbar-brand" href="/">
+          <i class="fas fa-clock me-2"></i>Work Tracker
+        </a>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="/">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/work/public">Public Entries</a>
+            </li>
+            {{#if isAuthenticated}}
+              <li class="nav-item">
+                <a class="nav-link" href="/work/dashboard">Dashboard</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/work/add">Add Entry</a>
+              </li>
+            {{/if}}
+          </ul>
+          
+          <ul class="navbar-nav">
+            {{#if isAuthenticated}}
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                  <i class="fas fa-user me-1"></i>{{user.firstName}}
+                </a>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="/work/dashboard">
+                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                  </a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li>
+                    <form action="/auth/logout" method="POST" style="margin: 0;">
+                      <button type="submit" class="dropdown-item">
+                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                      </button>
+                    </form>
+                  </li>
+                </ul>
+              </li>
+            {{else}}
+              <li class="nav-item">
+                <a class="nav-link" href="/auth/login">Login</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/auth/register">Register</a>
+              </li>
+            {{/if}}
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+      {{{body}}}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-4 mt-5">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-6">
+            <h5><i class="fas fa-clock me-2"></i>Work Tracker</h5>
+            <p class="mb-0">Professional time management and project tracking solution.</p>
+          </div>
+          <div class="col-md-6 text-md-end">
+            <p class="mb-0">&copy; {{currentYear}} Work Tracker. Built with Express.js & MongoDB.</p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Page specific scripts -->
+    {{{_sections.scripts}}}
   </body>
 </html>
