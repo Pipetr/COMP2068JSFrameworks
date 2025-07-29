@@ -110,15 +110,17 @@
       </div>
     {{/if}}
 
-    <!-- GitHub OAuth Registration -->
-    <a href="/auth/github" class="btn btn-github btn-auth">
-      <i class="fab fa-github me-2"></i>
-      Continue with GitHub
-    </a>
+    {{#if githubEnabled}}
+      <!-- GitHub OAuth Registration -->
+      <a href="/auth/github" class="btn btn-github btn-auth">
+        <i class="fab fa-github me-2"></i>
+        Continue with GitHub
+      </a>
 
-    <div class="divider">
-      <span>or</span>
-    </div>
+      <div class="divider">
+        <span>or</span>
+      </div>
+    {{/if}}
 
     <!-- Email/Password Registration -->
     <form action="/auth/register" method="POST">

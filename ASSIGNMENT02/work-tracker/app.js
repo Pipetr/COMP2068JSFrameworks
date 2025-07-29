@@ -31,6 +31,7 @@ mongoose.connect(dbConfig.database)
   .catch(err => {
     console.error('MongoDB connection error:', err.message);
     console.log('Please ensure MongoDB is running or update your MONGODB_URI in the .env file');
+    console.log('Application will continue without database functionality');
   });
 
 // view engine setup

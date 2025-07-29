@@ -9,7 +9,8 @@ router.get('/register', redirectIfAuthenticated, (req, res) => {
   res.render('auth/register', {
     title: 'Register - Work Tracker',
     error: req.session.error,
-    success: req.session.success
+    success: req.session.success,
+    githubEnabled: !!(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET)
   });
   delete req.session.error;
   delete req.session.success;
@@ -67,7 +68,8 @@ router.get('/login', redirectIfAuthenticated, (req, res) => {
   res.render('auth/login', {
     title: 'Login - Work Tracker',
     error: req.session.error,
-    success: req.session.success
+    success: req.session.success,
+    githubEnabled: !!(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET)
   });
   delete req.session.error;
   delete req.session.success;
@@ -103,18 +105,31 @@ router.post('/login', redirectIfAuthenticated, (req, res, next) => {
 });
 
 // GitHub OAuth
-router.get('/github', passport.authenticate('github', { scope: ['user:email'] }));
+router.get('/github', (req, res, next) => {
+  // Check if GitHub strategy is configured
+  if (!process.env.GITHUB_CLIENT_ID || !process.env.GITHUB_CLIENT_SECRET) {
+    req.session.error = 'GitHub OAuth is not configured';
+    return res.redirect('/auth/login');
+  }
+  
+  passport.authenticate('github', { scope: ['user:email'] })(req, res, next);
+});
 
 // GitHub OAuth callback
-router.get('/github/callback',
-  passport.authenticate('github', { failureRedirect: '/auth/login' }),
-  (req, res) => {
-    req.session.success = `Welcome, ${req.user.firstName}!`;
-    const redirectTo = req.session.returnTo || '/dashboard';
-    delete req.session.returnTo;
-    res.redirect(redirectTo);
+router.get('/github/callback', (req, res, next) => {
+  // Check if GitHub strategy is configured
+  if (!process.env.GITHUB_CLIENT_ID || !process.env.GITHUB_CLIENT_SECRET) {
+    req.session.error = 'GitHub OAuth is not configured';
+    return res.redirect('/auth/login');
   }
-);
+  
+  passport.authenticate('github', { failureRedirect: '/auth/login' })(req, res, next);
+}, (req, res) => {
+  req.session.success = `Welcome, ${req.user.firstName}!`;
+  const redirectTo = req.session.returnTo || '/dashboard';
+  delete req.session.returnTo;
+  res.redirect(redirectTo);
+});
 
 // Logout
 router.post('/logout', (req, res) => {
