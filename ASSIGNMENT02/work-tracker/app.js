@@ -6,7 +6,7 @@ var logger = require('morgan');
 var session = require('express-session');
 var MongoStore = require('connect-mongo');
 var mongoose = require('mongoose');
-var passport = require('./config/passport');
+var passport = require('passport');
 var hbs = require('hbs');
 
 // Load environment variables
@@ -14,6 +14,9 @@ require('dotenv').config();
 
 // Import database configuration
 const dbConfig = require('./config/database');
+
+// Import passport configuration
+require('./config/passport');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');

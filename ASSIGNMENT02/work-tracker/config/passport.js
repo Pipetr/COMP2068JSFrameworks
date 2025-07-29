@@ -90,4 +90,5 @@ passport.deserializeUser(async (id, done) => {
   }
 });
 
-module.exports = passport;
+// No need to export passport since this file just configures it
+// The configured passport is used via require('passport') in other files
