@@ -355,11 +355,12 @@ const storage = multer.diskStorage({
 const upload = multer({ 
   storage: storage,
   fileFilter: function (req, file, cb) {
-    if (file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-        file.mimetype === 'application/vnd.ms-excel') {
+    // Accept CSV and Excel files
+    const allowedTypes = ['text/csv', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'];
+    if (allowedTypes.includes(file.mimetype) || file.originalname.toLowerCase().endsWith('.csv')) {
       cb(null, true);
     } else {
-      cb(new Error('Only Excel files are allowed!'), false);
+      cb(new Error('Only CSV and Excel files are allowed!'), false);
     }
   },
   limits: {
@@ -375,7 +376,7 @@ router.get('/upload', requireAuth, async (req, res) => {
     const projects = await Project.find({ userId: req.user._id }).sort({ name: 1 });
     
     res.render('work/upload', {
-      title: 'Upload Excel File - Work Tracker',
+      title: 'Upload Work Hours - Work Tracker',
       projects,
       error: req.session.error,
       success: req.session.success
@@ -389,29 +390,30 @@ router.get('/upload', requireAuth, async (req, res) => {
   }
 });
 
-// Process Excel upload
-router.post('/upload', requireAuth, upload.single('excelFile'), async (req, res) => {
+// Process CSV/Excel upload
+router.post('/upload', requireAuth, upload.single('csvFile'), async (req, res) => {
   try {
     if (!req.file) {
-      req.session.error = 'Please select an Excel file to upload';
+      req.session.error = 'Please select a CSV or Excel file to upload';
       return res.redirect('/work/upload');
     }
 
-    const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.readFile(req.file.path);
-    
-    const worksheet = workbook.getWorksheet(1); // Get first worksheet
-    if (!worksheet) {
-      req.session.error = 'No data found in the Excel file';
+    if (!req.body.projectId) {
+      req.session.error = 'Please select a project for the import';
       return res.redirect('/work/upload');
     }
 
+    // Get the selected project
     const Project = require('../models/Project');
-    const projects = await Project.find({ userId: req.user._id });
-    const projectMap = {};
-    projects.forEach(project => {
-      projectMap[project.name.toLowerCase()] = project;
+    const project = await Project.findOne({ 
+      _id: req.body.projectId, 
+      userId: req.user._id 
     });
+
+    if (!project) {
+      req.session.error = 'Selected project not found';
+      return res.redirect('/work/upload');
+    }
 
     const results = {
       success: 0,
@@ -419,93 +421,74 @@ router.post('/upload', requireAuth, upload.single('excelFile'), async (req, res)
       total: 0
     };
 
-    // Process each row (skip header row)
-    worksheet.eachRow((row, rowNumber) => {
-      if (rowNumber === 1) return; // Skip header
-      
-      results.total++;
-      
-      try {
-        // Expected columns: Project Name, Description, Date, Start Time, End Time, Break Time (optional)
-        const projectName = row.getCell(1).value;
-        const description = row.getCell(2).value;
-        const date = row.getCell(3).value;
-        const startTime = row.getCell(4).value;
-        const endTime = row.getCell(5).value;
-        const breakTime = row.getCell(6).value || 0;
+    const fs = require('fs');
+    const csv = require('csv-parser');
+    const path = require('path');
 
-        // Validation
-        if (!projectName || !description || !date || !startTime || !endTime) {
-          results.errors.push(`Row ${rowNumber}: Missing required fields`);
-          return;
-        }
-
-        // Find matching project
-        const project = projectMap[projectName.toString().toLowerCase()];
-        if (!project) {
-          results.errors.push(`Row ${rowNumber}: Project "${projectName}" not found`);
-          return;
-        }
-
-        // Parse date
-        let workDate;
-        if (date instanceof Date) {
-          workDate = date;
-        } else {
-          workDate = new Date(date);
-        }
+    // Determine file type and process accordingly
+    const fileExtension = path.extname(req.file.originalname).toLowerCase();
+    
+    if (fileExtension === '.csv') {
+      // Process CSV file
+      await new Promise((resolve, reject) => {
+        const csvResults = [];
         
-        if (isNaN(workDate.getTime())) {
-          results.errors.push(`Row ${rowNumber}: Invalid date format`);
-          return;
-        }
-
-        // Parse times (handle different formats)
-        let startTimeStr, endTimeStr;
-        if (typeof startTime === 'number') {
-          // Excel time (fraction of a day)
-          const hours = Math.floor(startTime * 24);
-          const minutes = Math.floor((startTime * 24 * 60) % 60);
-          startTimeStr = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-        } else {
-          startTimeStr = startTime.toString();
-        }
-
-        if (typeof endTime === 'number') {
-          const hours = Math.floor(endTime * 24);
-          const minutes = Math.floor((endTime * 24 * 60) % 60);
-          endTimeStr = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-        } else {
-          endTimeStr = endTime.toString();
-        }
-
-        // Create work entry
-        const workEntry = new WorkEntry({
-          userId: req.user._id,
-          projectId: project._id,
-          project: project.name,
-          description: description.toString(),
-          date: new Date(workDate.toISOString().split('T')[0] + 'T12:00:00.000Z'),
-          startTime: startTimeStr,
-          endTime: endTimeStr,
-          breakTime: parseInt(breakTime) || 0,
-          hourlyRate: project.hourlyRate
-        });
-
-        // Save asynchronously
-        workEntry.save()
-          .then(() => results.success++)
-          .catch(err => {
-            results.errors.push(`Row ${rowNumber}: ${err.message}`);
-          });
-
-      } catch (error) {
-        results.errors.push(`Row ${rowNumber}: ${error.message}`);
+        fs.createReadStream(req.file.path)
+          .pipe(csv())
+          .on('data', (data) => csvResults.push(data))
+          .on('end', async () => {
+            try {
+              for (let i = 0; i < csvResults.length; i++) {
+                const row = csvResults[i];
+                const rowNumber = i + 2; // +2 because CSV is 1-indexed and we skip header
+                
+                try {
+                  await processWorkEntry(row, rowNumber, project, req.user._id, results);
+                } catch (error) {
+                  results.errors.push(`Row ${rowNumber}: ${error.message}`);
+                }
+                results.total++;
+              }
+              resolve();
+            } catch (error) {
+              reject(error);
+            }
+          })
+          .on('error', reject);
+      });
+    } else {
+      // Process Excel file
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.readFile(req.file.path);
+      
+      const worksheet = workbook.getWorksheet(1);
+      if (!worksheet) {
+        req.session.error = 'No data found in the Excel file';
+        return res.redirect('/work/upload');
       }
-    });
+
+      worksheet.eachRow((row, rowNumber) => {
+        if (rowNumber === 1) return; // Skip header
+        
+        results.total++;
+        
+        try {
+          // Convert Excel row to CSV-like object
+          const data = {
+            'Date': row.getCell(1).value,
+            'Start Time': row.getCell(2).value,
+            'End Time': row.getCell(3).value,
+            'Total Hours': row.getCell(4).value
+          };
+          
+          processWorkEntry(data, rowNumber, project, req.user._id, results);
+        } catch (error) {
+          results.errors.push(`Row ${rowNumber}: ${error.message}`);
+        }
+      });
+    }
 
     // Clean up uploaded file
-    const fs = require('fs');
     fs.unlinkSync(req.file.path);
 
     // Prepare results message
@@ -519,7 +502,7 @@ router.post('/upload', requireAuth, upload.single('excelFile'), async (req, res)
     res.redirect('/work/upload');
 
   } catch (error) {
-    console.error('Excel upload error:', error);
+    console.error('File upload error:', error);
     
     // Clean up uploaded file if it exists
     if (req.file) {
@@ -531,10 +514,121 @@ router.post('/upload', requireAuth, upload.single('excelFile'), async (req, res)
       }
     }
     
-    req.session.error = 'Error processing Excel file: ' + error.message;
+    req.session.error = 'Error processing file: ' + error.message;
     res.redirect('/work/upload');
   }
 });
+
+// Helper function to process individual work entry
+async function processWorkEntry(data, rowNumber, project, userId, results) {
+  // Extract data from your CSV format
+  const date = data['Date'];
+  const startTime = data['Start Time'];
+  const endTime = data['End Time'];
+  const totalHours = parseFloat(data['Total Hours']);
+
+  // Validation
+  if (!date || !startTime || !endTime) {
+    throw new Error('Missing required fields (Date, Start Time, End Time)');
+  }
+
+  if (isNaN(totalHours) || totalHours <= 0) {
+    throw new Error('Invalid or missing Total Hours value');
+  }
+
+  // Parse date
+  let workDate;
+  if (date instanceof Date) {
+    workDate = date;
+  } else {
+    workDate = new Date(date);
+  }
+  
+  if (isNaN(workDate.getTime())) {
+    throw new Error('Invalid date format. Expected YYYY-MM-DD');
+  }
+
+  // Parse times
+  let startTimeStr = parseTimeValue(startTime);
+  let endTimeStr = parseTimeValue(endTime);
+
+  // Validate time format
+  const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+  if (!timeRegex.test(startTimeStr)) {
+    throw new Error(`Invalid start time format: ${startTimeStr}. Expected HH:MM`);
+  }
+  if (!timeRegex.test(endTimeStr)) {
+    throw new Error(`Invalid end time format: ${endTimeStr}. Expected HH:MM`);
+  }
+
+  // Calculate actual end time and break time based on total hours
+  // The CSV end time already has break deducted, so we need to add it back
+  let breakTimeMinutes;
+  let actualEndTimeStr;
+
+  if (totalHours > 10) {
+    // For work sessions over 10 hours, there's a 60-minute break
+    breakTimeMinutes = 60;
+    actualEndTimeStr = addMinutesToTime(endTimeStr, 60);
+  } else {
+    // For work sessions 10 hours or less, there's a 30-minute break
+    breakTimeMinutes = 30;
+    actualEndTimeStr = addMinutesToTime(endTimeStr, 30);
+  }
+
+  // Create work entry with actual times (break time included)
+  const workEntry = new WorkEntry({
+    userId: userId,
+    projectId: project._id,
+    project: project.name,
+    description: `Imported work session - ${project.name}`,
+    date: new Date(workDate.toISOString().split('T')[0] + 'T12:00:00.000Z'),
+    startTime: startTimeStr,
+    endTime: actualEndTimeStr,
+    breakTime: breakTimeMinutes,
+    hourlyRate: project.hourlyRate
+  });
+
+  await workEntry.save();
+  results.success++;
+}
+
+// Helper function to parse time values (handles both string and Excel time formats)
+function parseTimeValue(timeValue) {
+  if (typeof timeValue === 'number') {
+    // Excel time (fraction of a day)
+    const hours = Math.floor(timeValue * 24);
+    const minutes = Math.floor((timeValue * 24 * 60) % 60);
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  } else {
+    // String time - ensure it's in HH:MM format
+    const timeStr = timeValue.toString().trim();
+    // Handle formats like "4:00" -> "04:00"
+    if (timeStr.includes(':')) {
+      const parts = timeStr.split(':');
+      const hours = parts[0].padStart(2, '0');
+      const minutes = parts[1].padStart(2, '0');
+      return `${hours}:${minutes}`;
+    }
+    return timeStr;
+  }
+}
+
+// Helper function to add minutes to a time string (HH:MM format)
+function addMinutesToTime(timeStr, minutesToAdd) {
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  
+  // Convert to total minutes, add the break time, then convert back
+  let totalMinutes = (hours * 60) + minutes + minutesToAdd;
+  
+  // Handle day overflow (24+ hours)
+  totalMinutes = totalMinutes % (24 * 60);
+  
+  const newHours = Math.floor(totalMinutes / 60);
+  const newMinutes = totalMinutes % 60;
+  
+  return `${newHours.toString().padStart(2, '0')}:${newMinutes.toString().padStart(2, '0')}`;
+}
 
 // Download sample Excel template
 router.get('/download-template', requireAuth, async (req, res) => {

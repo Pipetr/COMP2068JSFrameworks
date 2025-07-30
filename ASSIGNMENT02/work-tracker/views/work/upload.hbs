@@ -5,8 +5,8 @@
 <div class="container-fluid">
   <div class="upload-container">
     <div class="upload-header">
-      <h1><i class="fas fa-upload me-2"></i>Upload Excel File</h1>
-      <p class="mb-0">Import work entries from a spreadsheet</p>
+      <h1><i class="fas fa-upload me-2"></i>Upload Work Hours</h1>
+      <p class="mb-0">Import work entries from your CSV or Excel file</p>
     </div>
 
     {{#if error}}
@@ -33,19 +33,32 @@
 
     <!-- Instructions -->
     <div class="instructions-section">
-      <h5><i class="fas fa-info-circle me-2"></i>Before You Start</h5>
+      <h5><i class="fas fa-info-circle me-2"></i>CSV Format Requirements</h5>
       <ul class="mb-3">
-        <li>Download the Excel template to ensure correct formatting</li>
-        <li>Project names must match exactly with your existing projects</li>
-        <li>Supported formats: .xlsx, .xls (Excel files only)</li>
+        <li>Your CSV should have the following columns: <strong>Date, Start Time, End Time, Total Hours</strong></li>
+        <li>Expected format: <code>Date,Start Time,End Time,Total Hours,Period,total-hrs,amount,amount_after_taxes,additonal,actual payment</code></li>
+        <li>Date format: YYYY-MM-DD (e.g., 2025-06-30)</li>
+        <li>Time format: HH:MM (24-hour format, e.g., 04:00, 10:09)</li>
+        <li><strong>Break Time Logic:</strong> The system assumes your end time already has breaks deducted</li>
+        <li>For work sessions ≤ 10 hours: 30 minutes will be added back to end time</li>
+        <li>For work sessions > 10 hours: 60 minutes will be added back to end time</li>
+        <li>All entries will be associated with the selected project</li>
+        <li>Supported formats: .csv, .xlsx, .xls</li>
         <li>Maximum file size: 5MB</li>
-        <li>Hourly rates will be automatically assigned from your project settings</li>
+        <li>Hourly rates will be automatically assigned from your selected project</li>
       </ul>
       
       <div class="mb-3">
-        <a href="/work/download-template" class="btn btn-outline-info">
-          <i class="fas fa-download me-2"></i>Download Excel Template
-        </a>
+        <strong>Sample CSV format:</strong>
+        <pre class="bg-light p-2 small"><code>Date,Start Time,End Time,Total Hours,Period,total-hrs,amount,amount_after_taxes,additonal,actual payment
+2025-06-30,04:00,10:09,6.15,,,,,,</code></pre>
+        <div class="alert alert-info mt-2">
+          <small>
+            <i class="fas fa-clock me-2"></i>
+            <strong>Example:</strong> If your actual work was 04:00-10:39 with a 30-min break, 
+            you can enter 10:09 as end time. The system will automatically store 10:39 as the actual end time.
+          </small>
+        </div>
       </div>
 
       {{#if projects.length}}
@@ -72,22 +85,36 @@
         <h5><i class="fas fa-cloud-upload-alt me-2"></i>Upload Your File</h5>
         
         <form action="/work/upload" method="POST" enctype="multipart/form-data" id="uploadForm">
+          <!-- Project Selection -->
+          <div class="form-group mb-4">
+            <label for="projectId" class="form-label">
+              <i class="fas fa-project-diagram me-2"></i>Select Project for Import
+            </label>
+            <select class="form-control" id="projectId" name="projectId" required>
+              <option value="">Choose a project...</option>
+              {{#each projects}}
+                <option value="{{this._id}}">{{this.name}} (${{this.hourlyRate}}/hr)</option>
+              {{/each}}
+            </select>
+            <div class="form-text">All imported entries will be associated with this project</div>
+          </div>
+
           <div class="upload-zone" id="uploadZone">
             <div class="upload-icon">
-              <i class="fas fa-file-excel"></i>
+              <i class="fas fa-file-csv"></i>
             </div>
-            <h6>Drag & Drop Your Excel File Here</h6>
+            <h6>Drag & Drop Your CSV File Here</h6>
             <p class="text-muted mb-3">or click to browse</p>
             
             <div class="file-input-wrapper">
-              <input type="file" name="excelFile" id="excelFile" accept=".xlsx,.xls" required>
-              <label for="excelFile" class="file-input-label">
+              <input type="file" name="csvFile" id="csvFile" accept=".csv,.xlsx,.xls" required>
+              <label for="csvFile" class="file-input-label">
                 <i class="fas fa-folder-open me-2"></i>Choose File
               </label>
             </div>
             
             <div id="selectedFile" class="selected-file" style="display: none;">
-              <i class="fas fa-file-excel text-success me-2"></i>
+              <i class="fas fa-file-csv text-success me-2"></i>
               <span id="fileName"></span>
               <button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="clearFile()">
                 <i class="fas fa-times"></i>
@@ -109,38 +136,60 @@
 
     <!-- Sample Data Format -->
     <div class="upload-section">
-      <h5><i class="fas fa-table me-2"></i>Expected Excel Format</h5>
+      <h5><i class="fas fa-table me-2"></i>Expected CSV/Excel Format</h5>
+      <p class="text-muted mb-3">Your file should match this structure (additional columns beyond Total Hours will be ignored):</p>
       <div class="table-responsive">
         <table class="table table-bordered">
           <thead class="table-dark">
             <tr>
-              <th>Project Name</th>
-              <th>Description</th>
               <th>Date</th>
               <th>Start Time</th>
-              <th>End Time</th>
-              <th>Break Time (minutes)</th>
+              <th>End Time<br><small>(break deducted)</small></th>
+              <th>Total Hours</th>
+              <th>Period</th>
+              <th>total-hrs</th>
+              <th>amount</th>
+              <th>amount_after_taxes</th>
+              <th>additional</th>
+              <th>actual payment</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td>{{#if projects.[0]}}{{projects.[0].name}}{{else}}Sample Project{{/if}}</td>
-              <td>Website development work</td>
-              <td>2025-01-15</td>
-              <td>09:00</td>
-              <td>17:00</td>
-              <td>60</td>
+              <td>2025-06-30</td>
+              <td>04:00</td>
+              <td>10:09</td>
+              <td>6.15</td>
+              <td><span class="text-muted">(empty)</span></td>
+              <td><span class="text-muted">(empty)</span></td>
+              <td><span class="text-muted">(empty)</span></td>
+              <td><span class="text-muted">(empty)</span></td>
+              <td><span class="text-muted">(empty)</span></td>
+              <td><span class="text-muted">(empty)</span></td>
             </tr>
             <tr>
-              <td>{{#if projects.[1]}}{{projects.[1].name}}{{else}}Another Project{{/if}}</td>
-              <td>Bug fixes and testing</td>
-              <td>2025-01-16</td>
-              <td>10:00</td>
-              <td>18:00</td>
-              <td>30</td>
+              <td>2025-07-01</td>
+              <td>09:00</td>
+              <td>19:30</td>
+              <td>10.5</td>
+              <td><span class="text-muted">(empty)</span></td>
+              <td><span class="text-muted">(empty)</span></td>
+              <td><span class="text-muted">(empty)</span></td>
+              <td><span class="text-muted">(empty)</span></td>
+              <td><span class="text-muted">(empty)</span></td>
+              <td><span class="text-muted">(empty)</span></td>
             </tr>
           </tbody>
         </table>
+      </div>
+      <div class="alert alert-info">
+        <small>
+          <i class="fas fa-info-circle me-2"></i>
+          <strong>Break Time Processing:</strong>
+          <br>• Row 1: 6.15 hours (≤10) → 30 minutes added → Stored as 04:00-10:39 with 30min break
+          <br>• Row 2: 10.5 hours (>10) → 60 minutes added → Stored as 09:00-20:30 with 60min break
+          <br>• Only the first 4 columns are used for processing
+        </small>
       </div>
     </div>
   </div>
