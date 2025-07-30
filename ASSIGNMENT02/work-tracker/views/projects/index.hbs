@@ -115,19 +115,5 @@
 </div>
 
 {{#section 'scripts'}}
-<script>
-  // Handle delete modal
-  const deleteModal = document.getElementById('deleteModal');
-  if (deleteModal) {
-    deleteModal.addEventListener('show.bs.modal', function (event) {
-      const button = event.relatedTarget;
-      const projectId = button.getAttribute('data-project-id');
-      const projectName = button.getAttribute('data-project-name');
-      
-      const modal = this;
-      modal.querySelector('#projectName').textContent = projectName;
-      modal.querySelector('#deleteForm').action = `/projects/delete/${projectId}`;
-    });
-  }
-</script>
+<script src="/javascripts/projects.js"></script>
 {{/section}}
