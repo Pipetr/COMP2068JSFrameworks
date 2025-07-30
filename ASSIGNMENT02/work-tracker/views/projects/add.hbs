@@ -1,77 +1,5 @@
 {{#section 'styles'}}
-<style>
-  .form-container {
-    max-width: 600px;
-    margin: 2rem auto;
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.1);
-    overflow: hidden;
-  }
-  
-  .form-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 2rem;
-    text-align: center;
-  }
-  
-  .form-body {
-    padding: 2rem;
-  }
-  
-  .form-group {
-    margin-bottom: 1.5rem;
-  }
-  
-  .form-label {
-    font-weight: 500;
-    color: #2c3e50;
-    margin-bottom: 0.5rem;
-  }
-  
-  .form-control {
-    border-radius: 5px;
-    border: 1px solid #ddd;
-    padding: 0.75rem;
-  }
-  
-  .form-control:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-  }
-  
-  .btn-container {
-    display: flex;
-    gap: 1rem;
-    justify-content: space-between;
-    margin-top: 2rem;
-  }
-  
-  .color-picker-container {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-  }
-  
-  .color-option {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    border: 2px solid #ddd;
-    cursor: pointer;
-    transition: transform 0.2s;
-  }
-  
-  .color-option:hover {
-    transform: scale(1.1);
-  }
-  
-  .color-option.selected {
-    border-color: #333;
-    transform: scale(1.2);
-  }
-</style>
+<link rel="stylesheet" href="/stylesheets/projects.css">
 {{/section}}
 
 <div class="container">
@@ -142,22 +70,5 @@
 </div>
 
 {{#section 'scripts'}}
-<script>
-  // Color picker functionality
-  const colorOptions = document.querySelectorAll('.color-option');
-  const colorInput = document.getElementById('color');
-  
-  colorOptions.forEach(option => {
-    option.addEventListener('click', function() {
-      // Remove selected class from all options
-      colorOptions.forEach(opt => opt.classList.remove('selected'));
-      
-      // Add selected class to clicked option
-      this.classList.add('selected');
-      
-      // Update hidden input value
-      colorInput.value = this.getAttribute('data-color');
-    });
-  });
-</script>
+<script src="/javascripts/projects.js"></script>
 {{/section}}
