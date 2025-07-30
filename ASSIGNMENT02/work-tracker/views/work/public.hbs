@@ -15,8 +15,8 @@
 
   <div class="public-header">
     <div class="container">
-      <h1><i class="fas fa-eye me-2"></i>Recent Work Entries</h1>
-      <p class="mb-0">Public showcase of tracked work and projects</p>
+      <h1><i class="fas fa-chart-line me-2"></i>Platform Statistics</h1>
+      <p class="mb-0">See how Work Tracker is helping professionals manage their time</p>
     </div>
   </div>
 
@@ -27,62 +27,146 @@
   {{/if}}
 
   <div class="row">
-    <div class="col-12">
-      {{#if workEntries.length}}
-        {{#each workEntries}}
-          <div class="entry-card">
-            <div class="entry-header">
-              <div>
-                <div class="entry-project">{{this.project}}</div>
-                <div class="entry-date">{{formatDate this.date}}</div>
-              </div>
-              <div class="entry-author">
-                by {{this.userId.firstName}} {{this.userId.lastName}}
-              </div>
-            </div>
-            <div class="entry-body">
-              <div class="entry-description">{{this.description}}</div>
-              <div class="entry-details">
-                <div class="entry-time">
-                  <span><strong>Start:</strong> {{this.startTime}}</span>
-                  <span><strong>End:</strong> {{this.endTime}}</span>
-                  <span><strong>Hours:</strong> {{this.totalHours}}</span>
-                  <span><strong>Rate:</strong> ${{this.hourlyRate}}/hr</span>
-                </div>
-                <div class="entry-earnings">{{formatCurrency this.totalEarnings}}</div>
-              </div>
-            </div>
-          </div>
-        {{/each}}
-      {{else}}
-        <div class="empty-state">
-          <i class="fas fa-clock"></i>
-          <h4>No work entries yet</h4>
-          <p>Be the first to share your work tracking!</p>
-          {{#unless isAuthenticated}}
-            <a href="/auth/register" class="btn btn-primary me-2">
-              <i class="fas fa-user-plus me-2"></i>Join Work Tracker
-            </a>
-            <a href="/auth/login" class="btn btn-outline-primary">
-              <i class="fas fa-sign-in-alt me-2"></i>Sign In
-            </a>
-          {{/unless}}
+    <!-- Statistics Cards -->
+    <div class="col-md-6 col-lg-3 mb-4">
+      <div class="entry-card text-center">
+        <div class="entry-body">
+          <i class="fas fa-users fa-3x text-primary mb-3"></i>
+          <h3 class="text-primary">{{stats.totalUsers}}</h3>
+          <p class="mb-0">Registered Users</p>
         </div>
-      {{/if}}
+      </div>
+    </div>
+
+    <div class="col-md-6 col-lg-3 mb-4">
+      <div class="entry-card text-center">
+        <div class="entry-body">
+          <i class="fas fa-project-diagram fa-3x text-success mb-3"></i>
+          <h3 class="text-success">{{stats.totalProjects}}</h3>
+          <p class="mb-0">Total Projects</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-lg-3 mb-4">
+      <div class="entry-card text-center">
+        <div class="entry-body">
+          <i class="fas fa-clock fa-3x text-warning mb-3"></i>
+          <h3 class="text-warning">{{stats.totalHoursWorked}}</h3>
+          <p class="mb-0">Hours Tracked</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-lg-3 mb-4">
+      <div class="entry-card text-center">
+        <div class="entry-body">
+          <i class="fas fa-tasks fa-3x text-info mb-3"></i>
+          <h3 class="text-info">{{stats.totalWorkEntries}}</h3>
+          <p class="mb-0">Work Entries</p>
+        </div>
+      </div>
     </div>
   </div>
+
+  <!-- Additional Statistics -->
+  <div class="row">
+    <div class="col-md-6 mb-4">
+      <div class="entry-card">
+        <div class="entry-header">
+          <div class="entry-project">
+            <i class="fas fa-chart-bar me-2"></i>Active Projects
+          </div>
+        </div>
+        <div class="entry-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="h4 mb-0">{{stats.activeProjects}}</span>
+            <small class="text-muted">Currently in progress</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+      <div class="entry-card">
+        <div class="entry-header">
+          <div class="entry-project">
+            <i class="fas fa-dollar-sign me-2"></i>Average Hourly Rate
+          </div>
+        </div>
+        <div class="entry-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="h4 mb-0">${{stats.avgHourlyRate}}</span>
+            <small class="text-muted">Platform average</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Activity -->
+  {{#if stats.recentActivity.length}}
+    <div class="row">
+      <div class="col-12">
+        <div class="entry-card">
+          <div class="entry-header">
+            <div class="entry-project">
+              <i class="fas fa-activity me-2"></i>Recent Activity (Last 7 Days)
+            </div>
+          </div>
+          <div class="entry-body">
+            <div class="table-responsive">
+              <table class="table table-sm">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Entries</th>
+                    <th>Hours</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {{#each stats.recentActivity}}
+                    <tr>
+                      <td>{{this._id}}</td>
+                      <td>{{this.entriesCount}}</td>
+                      <td>{{#if this.totalHours}}{{this.totalHours}}{{else}}0.00{{/if}}</td>
+                    </tr>
+                  {{/each}}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {{/if}}
 
   {{#unless isAuthenticated}}
     <div class="text-center mt-4">
       <div class="card">
         <div class="card-body">
-          <h5 class="card-title">Start Tracking Your Work</h5>
-          <p class="card-text">Join Work Tracker to manage your projects, track hours, and calculate earnings.</p>
+          <h5 class="card-title">Join the Work Tracker Community</h5>
+          <p class="card-text">Become part of a growing community of professionals who track their time and maximize their productivity.</p>
           <a href="/auth/register" class="btn btn-primary me-2">
-            <i class="fas fa-user-plus me-2"></i>Get Started
+            <i class="fas fa-user-plus me-2"></i>Get Started Free
           </a>
           <a href="/auth/login" class="btn btn-outline-primary">
             <i class="fas fa-sign-in-alt me-2"></i>Sign In
+          </a>
+        </div>
+      </div>
+    </div>
+  {{else}}
+    <div class="text-center mt-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Ready to track your work?</h5>
+          <p class="card-text">Start logging your hours and managing your projects.</p>
+          <a href="/work/dashboard" class="btn btn-primary me-2">
+            <i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard
+          </a>
+          <a href="/work/add" class="btn btn-outline-primary">
+            <i class="fas fa-plus me-2"></i>Add Work Entry
           </a>
         </div>
       </div>

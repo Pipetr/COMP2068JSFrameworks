@@ -234,22 +234,105 @@ router.post('/delete/:id', requireAuth, async (req, res) => {
   }
 });
 
-// Public view - Show all work entries (read-only)
+// Public view - Show platform statistics (anonymized)
 router.get('/public', async (req, res) => {
   try {
-    const workEntries = await WorkEntry.find()
-      .populate('userId', 'firstName lastName')
-      .sort({ date: -1 });
+    // Get anonymized statistics
+    const User = require('../models/User');
+    const Project = require('../models/Project');
+    
+    // Get basic counts with error handling
+    let totalUsers = 0;
+    let totalProjects = 0;
+    let totalWorkEntries = 0;
+    let activeProjects = 0;
+    let totalHoursWorked = 0;
+    let avgHourlyRate = 0;
+    let recentStats = [];
+
+    try {
+      totalUsers = await User.countDocuments() || 0;
+    } catch (err) {
+      console.log('Error counting users:', err.message);
+    }
+
+    try {
+      totalProjects = await Project.countDocuments() || 0;
+    } catch (err) {
+      console.log('Error counting projects:', err.message);
+    }
+
+    try {
+      totalWorkEntries = await WorkEntry.countDocuments() || 0;
+    } catch (err) {
+      console.log('Error counting work entries:', err.message);
+    }
+
+    try {
+      activeProjects = await Project.countDocuments({ status: 'active' }) || 0;
+    } catch (err) {
+      console.log('Error counting active projects:', err.message);
+    }
+
+    // Only do aggregations if we have work entries
+    if (totalWorkEntries > 0) {
+      try {
+        const totalHoursResult = await WorkEntry.aggregate([
+          { $group: { _id: null, total: { $sum: '$totalHours' } } }
+        ]);
+        totalHoursWorked = totalHoursResult[0]?.total || 0;
+      } catch (err) {
+        console.log('Error aggregating total hours:', err.message);
+      }
+
+      try {
+        const avgRateResult = await WorkEntry.aggregate([
+          { $group: { _id: null, avgRate: { $avg: '$hourlyRate' } } }
+        ]);
+        avgHourlyRate = avgRateResult[0]?.avgRate || 0;
+      } catch (err) {
+        console.log('Error aggregating average rate:', err.message);
+      }
+
+      try {
+        recentStats = await WorkEntry.aggregate([
+          { $match: { date: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } } },
+          {
+            $group: {
+              _id: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
+              entriesCount: { $sum: 1 },
+              totalHours: { $sum: '$totalHours' }
+            }
+          },
+          { $sort: { '_id': -1 } },
+          { $limit: 7 }
+        ]);
+      } catch (err) {
+        console.log('Error aggregating recent stats:', err.message);
+        recentStats = [];
+      }
+    }
+
+    const stats = {
+      totalUsers,
+      totalProjects,
+      totalWorkEntries,
+      totalHoursWorked: totalHoursWorked.toFixed(2),
+      activeProjects,
+      avgHourlyRate: avgHourlyRate.toFixed(2),
+      recentActivity: recentStats || []
+    };
 
     res.render('work/public', {
-      title: 'Public Work Entries - Work Tracker',
-      workEntries
+      title: 'Work Tracker - Platform Statistics',
+      stats,
+      isAuthenticated: !!req.user
     });
   } catch (error) {
     console.error('Public view error:', error);
     res.render('error', { 
-      message: 'Error loading public work entries',
-      error: {}
+      message: 'Error loading platform statistics',
+      error: process.env.NODE_ENV === 'development' ? error : {}
     });
   }
 });

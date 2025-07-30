@@ -44,8 +44,20 @@ router.post('/register', redirectIfAuthenticated, async (req, res) => {
       return res.redirect('/auth/register');
     }
 
+    // Generate unique username from email
+    let baseUsername = email.split('@')[0].toLowerCase();
+    let username = baseUsername;
+    let counter = 1;
+    
+    // Ensure username is unique
+    while (await User.findOne({ username })) {
+      username = `${baseUsername}${counter}`;
+      counter++;
+    }
+
     // Create new user
     const newUser = new User({
+      username,
       firstName,
       lastName,
       email: email.toLowerCase(),
