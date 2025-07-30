@@ -3,6 +3,11 @@ const router = express.Router();
 const WorkEntry = require('../models/WorkEntry');
 const { requireAuth } = require('../middleware/auth');
 
+// Root route - redirect to dashboard
+router.get('/', requireAuth, (req, res) => {
+  res.redirect('/work/dashboard');
+});
+
 // Dashboard - Show user's work entries
 router.get('/dashboard', requireAuth, async (req, res) => {
   try {
