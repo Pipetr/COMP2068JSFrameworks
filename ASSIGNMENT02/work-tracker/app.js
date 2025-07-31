@@ -41,8 +41,23 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
 
 // Register handlebars helpers
+const handlebars = require('handlebars');
+
 hbs.registerHelper('eq', function(a, b) {
   return a === b;
+});
+
+hbs.registerHelper('and', function(a, b) {
+  return a && b;
+});
+
+// Also register with the core handlebars instance
+handlebars.registerHelper('eq', function(a, b) {
+  return a === b;
+});
+
+handlebars.registerHelper('and', function(a, b) {
+  return a && b;
 });
 
 hbs.registerHelper('formatCurrency', function(amount) {

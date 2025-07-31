@@ -91,7 +91,13 @@
                   <span><strong>Break:</strong> {{this.formattedBreakTime}}</span>
                   {{/if}}
                   <span><strong>Hours:</strong> {{this.totalHours}}</span>
-                  <span><strong>Rate:</strong> ${{this.hourlyRate}}/hr</span>
+                  <span><strong>Base Rate:</strong> ${{this.hourlyRate}}/hr</span>
+                  {{#if this.isOvertime}}
+                  <span class="overtime-badge">
+                    <i class="fas fa-star text-warning me-1"></i>
+                    <strong>{{this.overtimeLabel}}</strong> - {{this.formattedEffectiveRate}}/hr
+                  </span>
+                  {{/if}}
                 </div>
                 <div class="d-flex align-items-center gap-3">
                   <div class="entry-earnings">

@@ -66,6 +66,32 @@
           <small class="form-text text-muted">Enter break time in minutes (e.g., 30 for 30 minutes, 60 for 1 hour)</small>
         </div>
 
+        <div class="form-group">
+          <label class="form-label">Pay Rate Type</label>
+          <div class="pay-rate-options">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="payType" id="regularPay" value="regular" checked>
+              <label class="form-check-label" for="regularPay">
+                <i class="fas fa-clock me-2"></i>Regular Time (1.0x rate)
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="payType" id="overtimePay" value="overtime">
+              <label class="form-check-label" for="overtimePay">
+                <i class="fas fa-calendar-plus me-2"></i>Time & Half (1.5x rate)
+              </label>
+              <small class="form-text text-muted">For holidays, weekends, or overtime hours</small>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="payType" id="doublePay" value="double">
+              <label class="form-check-label" for="doublePay">
+                <i class="fas fa-star me-2"></i>Double Time (2.0x rate)
+              </label>
+              <small class="form-text text-muted">For special holidays or emergency work</small>
+            </div>
+          </div>
+        </div>
+
         <div class="btn-container">
           <a href="/work/dashboard" class="btn btn-secondary">
             <i class="fas fa-arrow-left me-2"></i>Cancel

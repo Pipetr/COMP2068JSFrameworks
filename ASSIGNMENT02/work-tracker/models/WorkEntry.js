@@ -48,6 +48,21 @@ const workEntrySchema = new mongoose.Schema({
     required: true,
     min: 0
   },
+  isOvertime: {
+    type: Boolean,
+    default: false
+  },
+  overtimeMultiplier: {
+    type: Number,
+    default: 1.0,
+    min: 1.0,
+    max: 3.0 // Allow up to triple time
+  },
+  effectiveHourlyRate: {
+    type: Number,
+    min: 0,
+    default: 0
+  },
   totalHours: {
     type: Number,
     min: 0,
@@ -152,10 +167,20 @@ workEntrySchema.pre('save', function(next) {
     totalMinutes -= (this.breakTime || 0);
     this.totalHours = Math.max(0, totalMinutes / 60);
     
-    // Calculate gross earnings
-    this.grossEarnings = this.totalHours * this.hourlyRate;
+    // Calculate effective hourly rate (apply overtime multiplier)
+    if (this.isOvertime && this.overtimeMultiplier && this.overtimeMultiplier > 1.0) {
+      this.effectiveHourlyRate = this.hourlyRate * this.overtimeMultiplier;
+    } else {
+      this.effectiveHourlyRate = this.hourlyRate;
+      if (!this.isOvertime) {
+        this.overtimeMultiplier = 1.0;
+      }
+    }
     
-    // Estimate annual income based on this hourly rate (assuming 40 hours/week)
+    // Calculate gross earnings using effective rate
+    this.grossEarnings = this.totalHours * this.effectiveHourlyRate;
+    
+    // Estimate annual income based on base hourly rate (assuming 40 hours/week)
     const estimatedAnnualIncome = this.hourlyRate * 40 * 52;
     
     // Calculate annual tax amounts
@@ -209,6 +234,22 @@ workEntrySchema.virtual('formattedGrossEarnings').get(function() {
 // Virtual for formatted net earnings
 workEntrySchema.virtual('formattedNetEarnings').get(function() {
   return `$${this.netEarnings.toFixed(2)}`;
+});
+
+// Virtual for formatted effective hourly rate
+workEntrySchema.virtual('formattedEffectiveRate').get(function() {
+  return `$${this.effectiveHourlyRate.toFixed(2)}`;
+});
+
+// Virtual for overtime indicator
+workEntrySchema.virtual('overtimeLabel').get(function() {
+  if (this.isOvertime) {
+    if (this.overtimeMultiplier === 1.5) return 'Time & Half';
+    if (this.overtimeMultiplier === 2.0) return 'Double Time';
+    if (this.overtimeMultiplier === 3.0) return 'Triple Time';
+    return `${this.overtimeMultiplier}x Rate`;
+  }
+  return 'Regular';
 });
 
 // Virtual for formatted break time

@@ -66,7 +66,7 @@ router.get('/add', requireAuth, async (req, res) => {
 // Create new work entry
 router.post('/add', requireAuth, async (req, res) => {
   try {
-    const { projectId, description, date, startTime, endTime, breakTime } = req.body;
+    const { projectId, description, date, startTime, endTime, breakTime, payType } = req.body;
 
     // Validation
     if (!projectId || !description || !date || !startTime || !endTime) {
@@ -92,6 +92,24 @@ router.post('/add', requireAuth, async (req, res) => {
       return res.redirect('/work/add');
     }
 
+    // Determine overtime settings based on payType
+    let isOvertime = false;
+    let overtimeMultiplier = 1.0;
+
+    switch (payType) {
+      case 'overtime':
+        isOvertime = true;
+        overtimeMultiplier = 1.5;
+        break;
+      case 'double':
+        isOvertime = true;
+        overtimeMultiplier = 2.0;
+        break;
+      default:
+        isOvertime = false;
+        overtimeMultiplier = 1.0;
+    }
+
     // Create new work entry
     const workEntry = new WorkEntry({
       userId: req.user._id,
@@ -102,7 +120,9 @@ router.post('/add', requireAuth, async (req, res) => {
       startTime,
       endTime,
       breakTime: breakTimeMinutes,
-      hourlyRate: project.hourlyRate
+      hourlyRate: project.hourlyRate,
+      isOvertime,
+      overtimeMultiplier
     });
 
     await workEntry.save();
@@ -156,7 +176,7 @@ router.get('/edit/:id', requireAuth, async (req, res) => {
 // Update work entry
 router.post('/edit/:id', requireAuth, async (req, res) => {
   try {
-    const { projectId, description, date, startTime, endTime, breakTime } = req.body;
+    const { projectId, description, date, startTime, endTime, breakTime, payType } = req.body;
 
     // Validation
     if (!projectId || !description || !date || !startTime || !endTime) {
@@ -182,26 +202,49 @@ router.post('/edit/:id', requireAuth, async (req, res) => {
       return res.redirect(`/work/edit/${req.params.id}`);
     }
 
+    // Determine overtime settings based on payType
+    let isOvertime = false;
+    let overtimeMultiplier = 1.0;
+
+    switch (payType) {
+      case 'overtime':
+        isOvertime = true;
+        overtimeMultiplier = 1.5;
+        break;
+      case 'double':
+        isOvertime = true;
+        overtimeMultiplier = 2.0;
+        break;
+      default:
+        isOvertime = false;
+        overtimeMultiplier = 1.0;
+    }
+
     // Update work entry
-    const workEntry = await WorkEntry.findOneAndUpdate(
-      { _id: req.params.id, userId: req.user._id },
-      {
-        projectId: project._id,
-        project: project.name,
-        description,
-        date: new Date(date + 'T12:00:00.000Z'), // Set to noon UTC to avoid timezone issues
-        startTime,
-        endTime,
-        breakTime: breakTimeMinutes,
-        hourlyRate: project.hourlyRate
-      },
-      { new: true }
-    );
+    const workEntry = await WorkEntry.findOne({ 
+      _id: req.params.id, 
+      userId: req.user._id 
+    });
 
     if (!workEntry) {
       req.session.error = 'Work entry not found';
       return res.redirect('/work/dashboard');
     }
+
+    // Update the fields
+    workEntry.projectId = project._id;
+    workEntry.project = project.name;
+    workEntry.description = description;
+    workEntry.date = new Date(date + 'T12:00:00.000Z'); // Set to noon UTC to avoid timezone issues
+    workEntry.startTime = startTime;
+    workEntry.endTime = endTime;
+    workEntry.breakTime = breakTimeMinutes;
+    workEntry.hourlyRate = project.hourlyRate;
+    workEntry.isOvertime = isOvertime;
+    workEntry.overtimeMultiplier = overtimeMultiplier;
+
+    // Save to trigger pre-save middleware that calculates effectiveHourlyRate
+    await workEntry.save();
 
     req.session.success = 'Work entry updated successfully!';
     res.redirect('/work/dashboard');
