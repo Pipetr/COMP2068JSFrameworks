@@ -12,9 +12,62 @@ router.get('/', requireAuth, (req, res) => {
 // Dashboard - Show user's work entries
 router.get('/dashboard', requireAuth, async (req, res) => {
   try {
-    const workEntries = await WorkEntry.find({ userId: req.user._id })
+    // Get filter parameters from query string
+    const { project, dateFrom, dateTo, search, sortBy } = req.query;
+    
+    // Build query object
+    let query = { userId: req.user._id };
+    
+    // Project filter
+    if (project && project !== 'all') {
+      query.projectId = project;
+    }
+    
+    // Date range filter
+    if (dateFrom || dateTo) {
+      query.date = {};
+      if (dateFrom) {
+        query.date.$gte = new Date(dateFrom + 'T00:00:00.000Z');
+      }
+      if (dateTo) {
+        query.date.$lte = new Date(dateTo + 'T23:59:59.999Z');
+      }
+    }
+    
+    // Search filter
+    if (search && search.trim()) {
+      query.description = { $regex: search.trim(), $options: 'i' };
+    }
+    
+    // Determine sort order
+    let sortOption = { date: -1 }; // Default: newest first
+    switch (sortBy) {
+      case 'date-asc':
+        sortOption = { date: 1 };
+        break;
+      case 'hours-desc':
+        sortOption = { totalHours: -1 };
+        break;
+      case 'hours-asc':
+        sortOption = { totalHours: 1 };
+        break;
+      case 'earnings-desc':
+        sortOption = { netEarnings: -1 };
+        break;
+      case 'earnings-asc':
+        sortOption = { netEarnings: 1 };
+        break;
+      default:
+        sortOption = { date: -1 };
+    }
+
+    const workEntries = await WorkEntry.find(query)
       .populate('projectId', 'name')
-      .sort({ date: -1 });
+      .sort(sortOption);
+
+    // Get all projects for filter dropdown
+    const Project = require('../models/Project');
+    const projects = await Project.find({ userId: req.user._id }).sort({ name: 1 });
 
     // Calculate totals
     const totalHours = workEntries.reduce((sum, entry) => sum + entry.totalHours, 0);
@@ -26,11 +79,21 @@ router.get('/dashboard', requireAuth, async (req, res) => {
     res.render('work/dashboard', {
       title: 'Dashboard - Work Tracker',
       workEntries,
+      projects,
       totalHours: totalHours.toFixed(2),
       totalEarnings: totalEarnings.toFixed(2),
       totalGrossEarnings: totalGrossEarnings.toFixed(2),
       totalNetEarnings: totalNetEarnings.toFixed(2),
       totalDeductions: totalDeductions.toFixed(2),
+      // Pass current filter values back to template
+      currentFilters: {
+        project: project || 'all',
+        dateFrom: dateFrom || '',
+        dateTo: dateTo || '',
+        search: search || '',
+        sortBy: sortBy || 'date-desc'
+      },
+      entriesCount: workEntries.length,
       success: req.session.success,
       error: req.session.error
     });

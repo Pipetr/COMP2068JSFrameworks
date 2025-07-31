@@ -62,11 +62,109 @@
     </div>
   </div>
 
+  <!-- Filter Controls -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+              <i class="fas fa-filter me-2"></i>Filter & Search
+            </h5>
+            <button class="btn btn-sm btn-outline-secondary" type="button" id="toggleFilters">
+              <i class="fas fa-chevron-down me-1"></i>
+              <span id="filterToggleText">Show Filters</span>
+            </button>
+          </div>
+        </div>
+        <div class="card-body" id="filterPanel" style="display: none;">
+          <form method="GET" action="/work/dashboard" class="filter-form">
+            <div class="row g-3">
+              <!-- Project Filter -->
+              <div class="col-md-3">
+                <label for="project" class="form-label">Project</label>
+                <select class="form-select" id="project" name="project">
+                  <option value="all" {{#if (eq currentFilters.project 'all')}}selected{{/if}}>All Projects</option>
+                  {{#each projects}}
+                    <option value="{{this._id}}" {{#if (eq this._id ../currentFilters.project)}}selected{{/if}}>
+                      {{this.name}}
+                    </option>
+                  {{/each}}
+                </select>
+              </div>
+              
+              <!-- Date Range -->
+              <div class="col-md-2">
+                <label for="dateFrom" class="form-label">From Date</label>
+                <input type="date" class="form-control" id="dateFrom" name="dateFrom" value="{{currentFilters.dateFrom}}">
+              </div>
+              
+              <div class="col-md-2">
+                <label for="dateTo" class="form-label">To Date</label>
+                <input type="date" class="form-control" id="dateTo" name="dateTo" value="{{currentFilters.dateTo}}">
+              </div>
+              
+              <!-- Search -->
+              <div class="col-md-3">
+                <label for="search" class="form-label">Search Description</label>
+                <input type="text" class="form-control" id="search" name="search" 
+                       placeholder="Search in descriptions..." value="{{currentFilters.search}}">
+              </div>
+              
+              <!-- Sort By -->
+              <div class="col-md-2">
+                <label for="sortBy" class="form-label">Sort By</label>
+                <select class="form-select" id="sortBy" name="sortBy">
+                  <option value="date-desc" {{#if (eq currentFilters.sortBy 'date-desc')}}selected{{/if}}>Newest First</option>
+                  <option value="date-asc" {{#if (eq currentFilters.sortBy 'date-asc')}}selected{{/if}}>Oldest First</option>
+                  <option value="hours-desc" {{#if (eq currentFilters.sortBy 'hours-desc')}}selected{{/if}}>Most Hours</option>
+                  <option value="hours-asc" {{#if (eq currentFilters.sortBy 'hours-asc')}}selected{{/if}}>Least Hours</option>
+                  <option value="earnings-desc" {{#if (eq currentFilters.sortBy 'earnings-desc')}}selected{{/if}}>Highest Earnings</option>
+                  <option value="earnings-asc" {{#if (eq currentFilters.sortBy 'earnings-asc')}}selected{{/if}}>Lowest Earnings</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="row mt-3">
+              <div class="col-12">
+                <button type="submit" class="btn btn-primary me-2">
+                  <i class="fas fa-search me-1"></i>Apply Filters
+                </button>
+                <a href="/work/dashboard" class="btn btn-outline-secondary">
+                  <i class="fas fa-times me-1"></i>Clear All
+                </a>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Work Entries -->
   <div class="row">
     <div class="col-12">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3>Recent Work Entries</h3>
+        <div>
+          <h3>Work Entries</h3>
+          <small class="text-muted">
+            Showing {{entriesCount}} entries
+            {{#if currentFilters.project}}
+              {{#unless (eq currentFilters.project 'all')}}
+                • Filtered by project
+              {{/unless}}
+            {{/if}}
+            {{#if currentFilters.dateFrom}}
+              • From {{currentFilters.dateFrom}}
+            {{/if}}
+            {{#if currentFilters.dateTo}}
+              • To {{currentFilters.dateTo}}
+            {{/if}}
+            {{#if currentFilters.search}}
+              • Search: "{{currentFilters.search}}"
+            {{/if}}
+          </small>
+        </div>
         <a href="/work/public" class="btn btn-outline-primary">
           <i class="fas fa-eye me-2"></i>View Public Entries
         </a>
@@ -122,12 +220,23 @@
         {{/each}}
       {{else}}
         <div class="empty-state">
-          <i class="fas fa-clock"></i>
-          <h4>No work entries yet</h4>
-          <p>Start tracking your work by adding your first entry.</p>
-          <a href="/work/add" class="btn btn-primary">
-            <i class="fas fa-plus me-2"></i>Add Your First Entry
-          </a>
+          <i class="fas fa-search"></i>
+          {{#if (or currentFilters.project currentFilters.dateFrom currentFilters.dateTo currentFilters.search)}}
+            <h4>No entries match your filters</h4>
+            <p>Try adjusting your filter criteria to see more results.</p>
+            <a href="/work/dashboard" class="btn btn-outline-primary me-2">
+              <i class="fas fa-times me-2"></i>Clear All Filters
+            </a>
+            <a href="/work/add" class="btn btn-primary">
+              <i class="fas fa-plus me-2"></i>Add New Entry
+            </a>
+          {{else}}
+            <h4>No work entries yet</h4>
+            <p>Start tracking your work by adding your first entry.</p>
+            <a href="/work/add" class="btn btn-primary">
+              <i class="fas fa-plus me-2"></i>Add Your First Entry
+            </a>
+          {{/if}}
         </div>
       {{/if}}
     </div>
