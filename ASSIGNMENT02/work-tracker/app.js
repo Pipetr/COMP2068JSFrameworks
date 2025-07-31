@@ -32,7 +32,7 @@ mongoose.connect(dbConfig.database)
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => {
     console.error('MongoDB connection error:', err.message);
-    console.log('Please ensure MongoDB is running or update your MONGODB_URI in the .env file');
+    console.log('Please ensure MongoDB is running or update your CONNECTION_STRING_MONGODB in the environment variables');
     console.log('Application will continue without database functionality');
   });
 
@@ -136,8 +136,6 @@ app.use((req, res, next) => {
 
 // Static files
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/js', express.static(path.join(__dirname, 'node_modules/bootstrap/dist/js')));
-app.use('/css', express.static(path.join(__dirname, 'node_modules/bootstrap/dist/css')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);

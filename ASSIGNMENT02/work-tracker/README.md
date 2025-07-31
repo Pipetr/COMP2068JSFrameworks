@@ -4,9 +4,8 @@ A comprehensive work time tracking and project management application built with
 
 ## 🌐 Live Application
 
-**Live Site:** [https://your-app-name.onrender.com](https://your-app-name.onrender.com)
+# **Live Site:** [https://work-tracker-r2pz.onrender.com/](https://work-tracker-r2pz.onrender.com/)
 
-*Note: Replace with your actual deployment URL*
 
 ## 📋 Assignment Requirements Completed
 
