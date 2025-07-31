@@ -1,0 +1,123 @@
+/* Reports Dashboard Styles */
+.reports-container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.reports-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 2rem;
+  border-radius: 10px;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.summary-card {
+  background: white;
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: 0 0 20px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.summary-card .icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.summary-card .value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 0.25rem;
+}
+
+.summary-card .label {
+  color: #7f8c8d;
+  font-size: 0.9rem;
+}
+
+.chart-container {
+  background: white;
+  border-radius: 10px;
+  padding: 2rem;
+  box-shadow: 0 0 20px rgba(0,0,0,0.1);
+  margin-bottom: 2rem;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.chart-title {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.chart-controls {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.chart-canvas {
+  position: relative;
+  height: 400px;
+}
+
+.filters-section {
+  background: white;
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: 0 0 20px rgba(0,0,0,0.1);
+  margin-bottom: 2rem;
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  align-items: end;
+}
+
+.filters-section .form-group {
+  margin-bottom: 0;
+}
+
+.filters-section .form-label {
+  font-weight: 500;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.filters-section .btn {
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .chart-controls {
+    justify-content: center;
+  }
+  
+  .chart-header {
+    text-align: center;
+  }
+}
