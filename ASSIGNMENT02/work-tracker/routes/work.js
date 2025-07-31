@@ -13,6 +13,7 @@ router.get('/', requireAuth, (req, res) => {
 router.get('/dashboard', requireAuth, async (req, res) => {
   try {
     const workEntries = await WorkEntry.find({ userId: req.user._id })
+      .populate('projectId', 'name')
       .sort({ date: -1 });
 
     // Calculate totals

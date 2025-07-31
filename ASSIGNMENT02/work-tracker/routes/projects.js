@@ -150,6 +150,15 @@ router.post('/edit/:id', requireAuth, async (req, res) => {
       return res.redirect('/projects');
     }
 
+    // If project name changed, update all related work entries
+    if (currentProject.name !== name) {
+      const WorkEntry = require('../models/WorkEntry');
+      await WorkEntry.updateMany(
+        { projectId: req.params.id, userId: req.user._id },
+        { project: name }
+      );
+    }
+
     req.session.success = 'Project updated successfully!';
     res.redirect('/projects');
   } catch (error) {
