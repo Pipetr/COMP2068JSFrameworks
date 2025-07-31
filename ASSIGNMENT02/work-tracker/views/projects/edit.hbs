@@ -1,0 +1,92 @@
+{{#section 'styles'}}
+<link rel="stylesheet" href="/stylesheets/projects.css">
+{{/section}}
+
+<div class="container">
+  <div class="form-container">
+    <div class="form-header">
+      <h2><i class="fas fa-edit me-2"></i>Edit Project</h2>
+      <p class="mb-0">Update project details and hourly rate</p>
+    </div>
+    
+    <div class="form-body">
+      {{#if error}}
+        <div class="alert alert-danger" role="alert">
+          {{error}}
+        </div>
+      {{/if}}
+
+      <form action="/projects/edit/{{project._id}}" method="POST">
+        <div class="form-group">
+          <label for="name" class="form-label">Project Name *</label>
+          <input type="text" class="form-control" id="name" name="name" 
+                 placeholder="Enter project name" value="{{project.name}}" required>
+        </div>
+
+        <div class="form-group">
+          <label for="client" class="form-label">Client</label>
+          <input type="text" class="form-control" id="client" name="client" 
+                 placeholder="Client or company name" value="{{project.client}}">
+        </div>
+
+        <div class="form-group">
+          <label for="description" class="form-label">Description</label>
+          <textarea class="form-control" id="description" name="description" rows="3"
+                    placeholder="Project description">{{project.description}}</textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="hourlyRate" class="form-label">Hourly Rate ($) *</label>
+          <input type="number" step="0.01" min="0.01" class="form-control" 
+                 id="hourlyRate" name="hourlyRate" placeholder="25.00" 
+                 value="{{project.hourlyRate}}" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Project Color</label>
+          <div class="color-picker-container">
+            <div class="color-option {{#if (eq project.color '#667eea')}}selected{{/if}}" 
+                 style="background-color: #667eea" data-color="#667eea"></div>
+            <div class="color-option {{#if (eq project.color '#28a745')}}selected{{/if}}" 
+                 style="background-color: #28a745" data-color="#28a745"></div>
+            <div class="color-option {{#if (eq project.color '#dc3545')}}selected{{/if}}" 
+                 style="background-color: #dc3545" data-color="#dc3545"></div>
+            <div class="color-option {{#if (eq project.color '#ffc107')}}selected{{/if}}" 
+                 style="background-color: #ffc107" data-color="#ffc107"></div>
+            <div class="color-option {{#if (eq project.color '#17a2b8')}}selected{{/if}}" 
+                 style="background-color: #17a2b8" data-color="#17a2b8"></div>
+            <div class="color-option {{#if (eq project.color '#6f42c1')}}selected{{/if}}" 
+                 style="background-color: #6f42c1" data-color="#6f42c1"></div>
+            <div class="color-option {{#if (eq project.color '#fd7e14')}}selected{{/if}}" 
+                 style="background-color: #fd7e14" data-color="#fd7e14"></div>
+            <div class="color-option {{#if (eq project.color '#20c997')}}selected{{/if}}" 
+                 style="background-color: #20c997" data-color="#20c997"></div>
+          </div>
+          <input type="hidden" id="color" name="color" value="{{project.color}}">
+        </div>
+
+        <div class="form-group">
+          <label for="status" class="form-label">Project Status</label>
+          <select class="form-control" id="status" name="status">
+            <option value="active" {{#if (eq project.status 'active')}}selected{{/if}}>Active</option>
+            <option value="completed" {{#if (eq project.status 'completed')}}selected{{/if}}>Completed</option>
+            <option value="on-hold" {{#if (eq project.status 'on-hold')}}selected{{/if}}>On Hold</option>
+          </select>
+        </div>
+
+        <div class="btn-container">
+          <a href="/projects" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Cancel
+          </a>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save me-2"></i>Update Project
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{{#section 'scripts'}}
+<script src="/javascripts/projects.js"></script>
+{{/section}}
