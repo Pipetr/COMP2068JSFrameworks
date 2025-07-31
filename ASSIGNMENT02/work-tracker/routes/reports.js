@@ -29,7 +29,17 @@ router.get('/', requireAuth, async (req, res) => {
     }, 0);
     
     const totalEarnings = workEntries.reduce((sum, entry) => {
-      return sum + (entry.totalEarnings || 0);
+      return sum + (entry.netEarnings || 0);
+    }, 0);
+    
+    // Calculate total gross earnings for comparison
+    const totalGrossEarnings = workEntries.reduce((sum, entry) => {
+      return sum + (entry.grossEarnings || 0);
+    }, 0);
+    
+    // Calculate total deductions
+    const totalDeductions = workEntries.reduce((sum, entry) => {
+      return sum + (entry.totalDeductions || 0);
     }, 0);
     
     // Calculate average hourly rate
@@ -48,7 +58,7 @@ router.get('/', requireAuth, async (req, res) => {
       }
       
       projectStats[projectName].hours += entry.totalHours || 0;
-      projectStats[projectName].earnings += entry.totalEarnings || 0;
+      projectStats[projectName].earnings += entry.netEarnings || 0;
       projectStats[projectName].entries += 1;
     });
     
@@ -64,7 +74,7 @@ router.get('/', requireAuth, async (req, res) => {
       }
       
       dailyStats[dateKey].hours += entry.totalHours || 0;
-      dailyStats[dateKey].earnings += entry.totalEarnings || 0;
+      dailyStats[dateKey].earnings += entry.netEarnings || 0;
     });
     
     res.render('reports/index', {
@@ -72,8 +82,8 @@ router.get('/', requireAuth, async (req, res) => {
       totalHours: totalHours.toFixed(2),
       totalEarnings: totalEarnings.toFixed(2),
       avgHourly: avgHourlyRate.toFixed(2),
-      projectStats: JSON.stringify(projectStats),
-      dailyStats: JSON.stringify(dailyStats),
+      projectStatsJson: JSON.stringify(projectStats),
+      dailyStatsJson: JSON.stringify(dailyStats),
       projects,
       entriesCount: workEntries.length,
       dateRange: {
@@ -128,7 +138,7 @@ router.get('/api/chart-data', requireAuth, async (req, res) => {
       }
       
       projectStats[projectName].hours += entry.totalHours || 0;
-      projectStats[projectName].earnings += entry.totalEarnings || 0;
+      projectStats[projectName].earnings += entry.netEarnings || 0;
       projectStats[projectName].entries += 1;
     });
     
@@ -144,7 +154,7 @@ router.get('/api/chart-data', requireAuth, async (req, res) => {
       }
       
       dailyStats[dateKey].hours += entry.totalHours || 0;
-      dailyStats[dateKey].earnings += entry.totalEarnings || 0;
+      dailyStats[dateKey].earnings += entry.netEarnings || 0;
     });
     
     res.json({
@@ -155,7 +165,7 @@ router.get('/api/chart-data', requireAuth, async (req, res) => {
           return sum + (entry.totalHours || 0);
         }, 0),
         totalEarnings: workEntries.reduce((sum, entry) => {
-          return sum + (entry.totalEarnings || 0);
+          return sum + (entry.netEarnings || 0);
         }, 0),
         entriesCount: workEntries.length
       }

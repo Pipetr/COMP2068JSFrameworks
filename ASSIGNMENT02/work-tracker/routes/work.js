@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const WorkEntry = require('../models/WorkEntry');
+const WorkEntryService = require('../services/WorkEntryService');
 const { requireAuth } = require('../middleware/auth');
 
 // Root route - redirect to dashboard
@@ -111,6 +112,18 @@ router.post('/add', requireAuth, async (req, res) => {
     }
 
     // Create new work entry
+    const workEntryData = {
+      startTime,
+      endTime,
+      breakTime: breakTimeMinutes,
+      hourlyRate: project.hourlyRate,
+      isOvertime,
+      overtimeMultiplier
+    };
+
+    // Calculate all values using the service
+    const calculations = WorkEntryService.calculateWorkEntry(workEntryData);
+
     const workEntry = new WorkEntry({
       userId: req.user._id,
       projectId: project._id,
@@ -122,7 +135,9 @@ router.post('/add', requireAuth, async (req, res) => {
       breakTime: breakTimeMinutes,
       hourlyRate: project.hourlyRate,
       isOvertime,
-      overtimeMultiplier
+      overtimeMultiplier,
+      // Add calculated values
+      ...calculations
     });
 
     await workEntry.save();
@@ -231,6 +246,19 @@ router.post('/edit/:id', requireAuth, async (req, res) => {
       return res.redirect('/work/dashboard');
     }
 
+    // Prepare data for calculation
+    const workEntryData = {
+      startTime,
+      endTime,
+      breakTime: breakTimeMinutes,
+      hourlyRate: project.hourlyRate,
+      isOvertime,
+      overtimeMultiplier
+    };
+
+    // Calculate all values using the service
+    const calculations = WorkEntryService.calculateWorkEntry(workEntryData);
+
     // Update the fields
     workEntry.projectId = project._id;
     workEntry.project = project.name;
@@ -242,8 +270,10 @@ router.post('/edit/:id', requireAuth, async (req, res) => {
     workEntry.hourlyRate = project.hourlyRate;
     workEntry.isOvertime = isOvertime;
     workEntry.overtimeMultiplier = overtimeMultiplier;
+    
+    // Update calculated values
+    Object.assign(workEntry, calculations);
 
-    // Save to trigger pre-save middleware that calculates effectiveHourlyRate
     await workEntry.save();
 
     req.session.success = 'Work entry updated successfully!';
@@ -620,6 +650,18 @@ async function processWorkEntry(data, rowNumber, project, userId, results) {
   }
 
   // Create work entry with actual times (break time included)
+  const workEntryData = {
+    startTime: startTimeStr,
+    endTime: actualEndTimeStr,
+    breakTime: breakTimeMinutes,
+    hourlyRate: project.hourlyRate,
+    isOvertime: false,
+    overtimeMultiplier: 1.0
+  };
+
+  // Calculate all values using the service
+  const calculations = WorkEntryService.calculateWorkEntry(workEntryData);
+
   const workEntry = new WorkEntry({
     userId: userId,
     projectId: project._id,
@@ -629,7 +671,11 @@ async function processWorkEntry(data, rowNumber, project, userId, results) {
     startTime: startTimeStr,
     endTime: actualEndTimeStr,
     breakTime: breakTimeMinutes,
-    hourlyRate: project.hourlyRate
+    hourlyRate: project.hourlyRate,
+    isOvertime: false,
+    overtimeMultiplier: 1.0,
+    // Add calculated values
+    ...calculations
   });
 
   await workEntry.save();

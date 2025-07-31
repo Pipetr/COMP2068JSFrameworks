@@ -102,9 +102,8 @@ router.post('/edit/:id', requireAuth, async (req, res) => {
   try {
     const { name, description, hourlyRate, client, status, color } = req.body;
 
-    // Validation
-    if (!name || !hourlyRate) {
-      req.session.error = 'Project name and hourly rate are required';
+    if (!name || name.trim() === '') {
+      req.session.error = 'Project name is required';
       return res.redirect(`/projects/edit/${req.params.id}`);
     }
 
@@ -113,18 +112,36 @@ router.post('/edit/:id', requireAuth, async (req, res) => {
       return res.redirect(`/projects/edit/${req.params.id}`);
     }
 
+    // Get the current project first
+    const currentProject = await Project.findOne({
+      _id: req.params.id,
+      userId: req.user._id
+    });
+
+    if (!currentProject) {
+      req.session.error = 'Project not found';
+      return res.redirect('/projects');
+    }
+
+    // Prepare update object
+    const updateData = {
+      name,
+      description,
+      hourlyRate: parseFloat(hourlyRate),
+      client,
+      status,
+      color: color || '#667eea'
+    };
+
+    // Add endDate if status is being changed to completed
+    if (status === 'completed' && !currentProject.endDate) {
+      updateData.endDate = new Date();
+    }
+
     // Update project
     const project = await Project.findOneAndUpdate(
       { _id: req.params.id, userId: req.user._id },
-      {
-        name,
-        description,
-        hourlyRate: parseFloat(hourlyRate),
-        client,
-        status,
-        color: color || '#667eea',
-        ...(status === 'completed' && !project.endDate ? { endDate: new Date() } : {})
-      },
+      updateData,
       { new: true }
     );
 

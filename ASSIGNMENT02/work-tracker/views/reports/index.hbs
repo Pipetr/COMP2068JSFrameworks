@@ -58,7 +58,7 @@
           <i class="fas fa-dollar-sign"></i>
         </div>
         <div class="value" id="totalEarnings">${{totalEarnings}}</div>
-        <div class="label">Total Earnings</div>
+        <div class="label">Net Earnings</div>
       </div>
       <div class="summary-card">
         <div class="icon text-info">
@@ -141,12 +141,8 @@
 {{#section 'scripts'}}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="/javascripts/reports.js"></script>
-<script>
-  // Initialize charts when page loads with server data
-  document.addEventListener('DOMContentLoaded', function() {
-    const serverProjectStats = {{{projectStats}}};
-    const serverDailyStats = {{{dailyStats}}};
-    initializeReports(serverProjectStats, serverDailyStats);
-  });
-</script>
 {{/section}}
+
+<!-- Hidden data containers for client-side access -->
+<script type="application/json" id="project-stats-data">{{projectStatsJson}}</script>
+<script type="application/json" id="daily-stats-data">{{dailyStatsJson}}</script>
