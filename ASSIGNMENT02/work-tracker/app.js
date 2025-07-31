@@ -85,6 +85,16 @@ hbs.registerHelper('eq', function(a, b) {
   return a === b;
 });
 
+// Or helper for handlebars conditionals
+hbs.registerHelper('or', function() {
+  return Array.prototype.slice.call(arguments, 0, -1).some(Boolean);
+});
+
+// ToString helper for object comparison
+hbs.registerHelper('toString', function(value) {
+  return value ? value.toString() : '';
+});
+
 // Sections helper for page-specific CSS and JS
 hbs.registerHelper('section', function(name, options) {
   if (!this._sections) this._sections = {};

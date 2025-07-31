@@ -15,6 +15,8 @@ router.get('/dashboard', requireAuth, async (req, res) => {
     // Get filter parameters from query string
     const { project, dateFrom, dateTo, search, sortBy } = req.query;
     
+    console.log('Filter parameters:', { project, dateFrom, dateTo, search, sortBy });
+    
     // Build query object
     let query = { userId: req.user._id };
     
@@ -61,13 +63,20 @@ router.get('/dashboard', requireAuth, async (req, res) => {
         sortOption = { date: -1 };
     }
 
+    console.log('Database query:', query);
+    console.log('Sort option:', sortOption);
+    
     const workEntries = await WorkEntry.find(query)
       .populate('projectId', 'name')
       .sort(sortOption);
 
+    console.log('Found work entries:', workEntries.length);
+
     // Get all projects for filter dropdown
     const Project = require('../models/Project');
     const projects = await Project.find({ userId: req.user._id }).sort({ name: 1 });
+    
+    console.log('Available projects:', projects.length, projects.map(p => ({ id: p._id, name: p.name })));
 
     // Calculate totals
     const totalHours = workEntries.reduce((sum, entry) => sum + entry.totalHours, 0);
