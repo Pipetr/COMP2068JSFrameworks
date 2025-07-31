@@ -2,6 +2,45 @@
 
 A comprehensive work time tracking and project management application built with Express.js and MongoDB. Track your work hours, manage projects with different hourly rates, visualize your productivity with interactive charts, and import data from Excel spreadsheets.
 
+## 🌐 Live Application
+
+**Live Site:** [https://your-app-name.onrender.com](https://your-app-name.onrender.com)
+
+*Note: Replace with your actual deployment URL*
+
+## 📋 Assignment Requirements Completed
+
+This application fulfills all COMP2068 Assignment #2 requirements:
+
+1. **✅ Express Application with HBS templating**
+2. **✅ Professional CSS design using Bootstrap**
+3. **✅ Splash page with shared header/footer**
+4. **✅ Public read-only page (Platform Statistics)**
+5. **✅ User registration and login system**
+6. **✅ GitHub OAuth authentication**
+7. **✅ MongoDB cloud database with config separation**
+8. **✅ Full CRUD operations for authenticated users**
+9. **✅ Delete confirmation modals**
+10. **✅ Additional Feature: Advanced File Upload System**
+
+## 🎯 Additional Feature: Intelligent CSV/Excel Import System
+
+**Feature Description:** Advanced file upload system with intelligent data processing capabilities.
+
+**Key Capabilities:**
+- **Smart Break Time Processing**: Automatically adjusts imported time entries based on work duration (30 min for ≤10 hours, 60 min for >10 hours)
+- **Multi-Format Support**: Handles CSV, XLSX, and XLS file formats
+- **Project Association**: Links imported entries to selected projects with automatic hourly rate assignment
+- **Data Validation**: Comprehensive validation with detailed error reporting
+- **User's Format Adaptation**: Specifically designed to handle the user's existing CSV format: `Date,Start Time,End Time,Total Hours,Period,total-hrs,amount,amount_after_taxes,additional,actual payment`
+- **Visual Upload Interface**: Modern drag-and-drop interface with real-time feedback
+
+This feature demonstrates independent learning in:
+- File processing with `multer` and `csv-parser`
+- Complex data transformation logic
+- User experience design for bulk operations
+- Integration with existing project management system
+
 ## 🚀 Features
 
 ### ⏰ Time Tracking
@@ -419,4 +458,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Built with ❤️ for efficient work tracking and project management**
+
